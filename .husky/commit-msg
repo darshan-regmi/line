@@ -1,0 +1,1 @@
+npm run lint && npx --yes commitlint --edit "$1"
