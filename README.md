@@ -152,7 +152,7 @@ posts/{postId}/comments/{commentId}
 ### Prerequisites
 
 - Node.js 16+ & npm
-- Expo CLI: `npm install -g eas-cli`
+- Expo CLI: `pnpm install -g eas-cli`
 - Firebase project (create at [console.firebase.google.com](https://console.firebase.google.com))
 
 ### Installation
@@ -167,7 +167,7 @@ cd line
 2. **Install dependencies**
 
 ```bash
-npm install
+pnpm install
 ```
 
 3. **Set up Firebase**
@@ -190,20 +190,20 @@ EXPO_PUBLIC_FIREBASE_APP_ID=your_app_id
 5. **Start the dev server**
 
 ```bash
-npm start
+pnpm start
 ```
 
 6. **Run on device or emulator**
 
 ```bash
 # iOS
-npm run ios
+pnpm run ios
 
 # Android
-npm run android
+pnpm run android
 
 # Web
-npm run web
+pnpm run web
 ```
 
 ---
@@ -400,13 +400,13 @@ Please ensure:
 
 ```bash
 # Run tests
-npm test
+pnpm test
 
 # Run linter
-npm run lint
+pnpm run lint
 
 # Build for production
-npm run build
+pnpm run build
 ```
 
 ---
