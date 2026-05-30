@@ -20,6 +20,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Avatar } from '../../components/Avatar'
 import { CommentItem } from '../../components/CommentItem'
 import { HeartButton } from '../../components/HeartButton'
+import { LikesModal } from '../../components/LikesModal'
 import { useAuth } from '../../context/AuthContext'
 import { usePost } from '../../hooks/usePost'
 import { useUser } from '../../hooks/useUser'
@@ -46,6 +47,7 @@ export const PostDetailScreen = (): ReactElement => {
   const [draft, setDraft] = useState('')
   const [posting, setPosting] = useState(false)
   const [likeBusy, setLikeBusy] = useState(false)
+  const [likesModalVisible, setLikesModalVisible] = useState(false)
 
   const postId = post?.postId
   useEffect(() => {
@@ -160,11 +162,22 @@ export const PostDetailScreen = (): ReactElement => {
       <View style={styles.actions}>
         <HeartButton
           liked={liked}
-          count={post.likesCount}
+          count={0}
           onPress={handleLike}
           disabled={!user}
-          size={20}
+          size={22}
+          showCount={false}
         />
+        <Pressable
+          onPress={() => setLikesModalVisible(true)}
+          disabled={post.likesCount === 0}
+          hitSlop={8}
+          style={({ pressed }) => [pressed && { opacity: 0.6 }]}
+        >
+          <Text style={[styles.likeCount, post.likesCount === 0 && { opacity: 0.4 }]}>
+            {post.likesCount} {post.likesCount === 1 ? 'like' : 'likes'}
+          </Text>
+        </Pressable>
         <View style={styles.action}>
           <Text style={styles.actionIcon}>💬</Text>
           <Text style={styles.actionText}>{post.commentsCount}</Text>
@@ -235,6 +248,16 @@ export const PostDetailScreen = (): ReactElement => {
           </Pressable>
         </View>
       </KeyboardAvoidingView>
+
+      <LikesModal
+        visible={likesModalVisible}
+        userIds={post.likes}
+        onClose={() => setLikesModalVisible(false)}
+        onUserPress={(uid) => {
+          setLikesModalVisible(false)
+          nav.navigate('UserProfile', { userId: uid })
+        }}
+      />
     </SafeAreaView>
   )
 }
@@ -263,8 +286,9 @@ const styles = StyleSheet.create({
   title: { color: colors.textPrimary, fontSize: 24, fontWeight: '700', marginBottom: 10 },
   body: { color: colors.textPrimary, fontSize: 17, lineHeight: 28, fontWeight: '300' },
 
-  actions: { flexDirection: 'row', marginTop: 18, gap: 20 },
+  actions: { flexDirection: 'row', alignItems: 'center', marginTop: 18, gap: 16 },
   action: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  likeCount: { color: colors.textSecondary, fontSize: 14, fontWeight: '500' },
   actionIcon: { color: colors.textSecondary, fontSize: 20 },
   actionIconActive: { color: colors.accent },
   actionText: { color: colors.textSecondary, fontSize: 14 },

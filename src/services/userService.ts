@@ -112,3 +112,13 @@ export const isFollowing = async (currentUid: string, targetUid: string): Promis
   const snap = await getDoc(doc(db, 'users', currentUid, 'following', targetUid))
   return snap.exists()
 }
+
+/**
+ * Fetches user profiles for an array of uids in parallel.
+ * Skips uids whose docs don't exist (e.g., deleted accounts).
+ */
+export const getUsersByIds = async (uids: string[]): Promise<UserProfile[]> => {
+  if (uids.length === 0) return []
+  const results = await Promise.all(uids.map((uid) => getUser(uid)))
+  return results.filter((u): u is UserProfile => u !== null)
+}
