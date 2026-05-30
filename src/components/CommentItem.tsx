@@ -1,19 +1,57 @@
-import React, { memo, ReactElement } from 'react'
+import React, { memo, ReactElement, useEffect, useState } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 
+import { useAuth } from '../context/AuthContext'
 import { useUser } from '../hooks/useUser'
+import { toggleCommentLike } from '../services/commentService'
 import { colors } from '../utils/colorScheme'
 import { formatRelativeTime } from '../utils/formatters'
 
 import { Comment } from '../types'
 import { Avatar } from './Avatar'
+import { HeartButton } from './HeartButton'
 
 type Props = {
   comment: Comment
+  postId: string
 }
 
-const CommentItemComponent = ({ comment }: Props): ReactElement => {
+const CommentItemComponent = ({ comment, postId }: Props): ReactElement => {
+  const { user: currentUser } = useAuth()
   const { user: author } = useUser(comment.userId)
+
+  const [local, setLocal] = useState<Comment>(comment)
+  const [busy, setBusy] = useState(false)
+
+  // Sync when parent passes a new comment (real-time listener fired)
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLocal(comment)
+  }, [comment])
+
+  const liked = !!currentUser && local.likes.includes(currentUser.uid)
+
+  const handleLike = async () => {
+    if (!currentUser || busy) return
+
+    const next: Comment = {
+      ...local,
+      likes: liked
+        ? local.likes.filter((id) => id !== currentUser.uid)
+        : [...local.likes, currentUser.uid],
+      likesCount: local.likesCount + (liked ? -1 : 1)
+    }
+
+    setLocal(next)
+    setBusy(true)
+    try {
+      await toggleCommentLike(postId, local.commentId, currentUser.uid, liked)
+    } catch {
+      setLocal(local)
+    } finally {
+      setBusy(false)
+    }
+  }
 
   return (
     <View style={styles.row}>
@@ -23,9 +61,18 @@ const CommentItemComponent = ({ comment }: Props): ReactElement => {
           <Text style={styles.author} numberOfLines={1}>
             {author?.displayName ?? 'Anonymous'}
           </Text>
-          <Text style={styles.time}>{formatRelativeTime(comment.createdAt)}</Text>
+          <Text style={styles.time}>{formatRelativeTime(local.createdAt)}</Text>
         </View>
-        <Text style={styles.content}>{comment.content}</Text>
+        <Text style={styles.content}>{local.content}</Text>
+        <View style={styles.actions}>
+          <HeartButton
+            liked={liked}
+            count={local.likesCount}
+            onPress={handleLike}
+            disabled={!currentUser}
+            size={14}
+          />
+        </View>
       </View>
     </View>
   )
@@ -61,5 +108,9 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     fontSize: 14,
     lineHeight: 20
+  },
+  actions: {
+    flexDirection: 'row',
+    marginTop: 6
   }
 })

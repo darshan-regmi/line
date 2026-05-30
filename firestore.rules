@@ -94,9 +94,8 @@ service cloud.firestore {
         allow update: if isSelf(resource.data.userId);
         allow delete: if isSelf(resource.data.userId);
 
-        // (Phase 2 hook: comment-like toggle by any authed user — mirrors post likes.
-        // Uncomment when you wire up CommentItem like buttons.)
-        // allow update: if isAuthed() && isOwnCommentLikeToggle();
+        // Anyone authed can toggle their OWN like on the comment
+        allow update: if isAuthed() && isOwnCommentLikeToggle();
       }
     }
 
@@ -120,7 +119,22 @@ service cloud.firestore {
         && request.resource.data.likesCount == resource.data.likesCount + (nowLiked ? 1 : -1);
     }
 
-    // (Reserved for Phase 2 — same shape, different path)
-    // function isOwnCommentLikeToggle() { ... }
+    // Same shape as isOwnLikeToggle but for the comments subcollection:
+    // comments have no `updatedAt`, so allowed keys are just likes + likesCount.
+    function isOwnCommentLikeToggle() {
+      let uid = request.auth.uid;
+      let cur = resource.data.likes;
+      let next = request.resource.data.likes;
+      let wasLiked = uid in cur;
+      let nowLiked = uid in next;
+      let curOthers = cur.toSet().difference([uid].toSet());
+      let nextOthers = next.toSet().difference([uid].toSet());
+
+      return changedKeys().hasOnly(['likes', 'likesCount'])
+        && wasLiked != nowLiked
+        && curOthers == nextOthers
+        && next.size() == cur.size() + (nowLiked ? 1 : -1)
+        && request.resource.data.likesCount == resource.data.likesCount + (nowLiked ? 1 : -1);
+    }
   }
 }

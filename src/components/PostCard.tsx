@@ -9,6 +9,7 @@ import { formatRelativeTime, truncate } from '../utils/formatters'
 
 import { Post } from '../types'
 import { Avatar } from './Avatar'
+import { HeartButton } from './HeartButton'
 
 type Props = {
   post: Post
@@ -87,19 +88,13 @@ const PostCardComponent = ({
       <Text style={styles.body}>{truncate(localPost.content, 280)}</Text>
 
       <View style={styles.actions}>
-        <Pressable
+        <HeartButton
+          liked={liked}
+          count={localPost.likesCount}
           onPress={handleLike}
           disabled={!currentUser}
-          hitSlop={8}
-          style={({ pressed }) => [styles.action, pressed && { opacity: 0.6 }]}
-        >
-          <Text style={[styles.actionIcon, liked && styles.actionIconActive]}>
-            {liked ? '♥' : '♡'}
-          </Text>
-          <Text style={[styles.actionText, liked && styles.actionTextActive]}>
-            {localPost.likesCount}
-          </Text>
-        </Pressable>
+          size={18}
+        />
 
         <View style={styles.action}>
           <Text style={styles.actionIcon}>💬</Text>
@@ -164,14 +159,8 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontSize: 18
   },
-  actionIconActive: {
-    color: colors.accent
-  },
   actionText: {
     color: colors.textSecondary,
     fontSize: 13
-  },
-  actionTextActive: {
-    color: colors.accent
   }
 })

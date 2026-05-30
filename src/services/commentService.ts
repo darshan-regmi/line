@@ -1,5 +1,7 @@
 import {
   addDoc,
+  arrayRemove,
+  arrayUnion,
   collection,
   doc,
   FirestoreError,
@@ -59,6 +61,18 @@ export const getComments = async (postId: string): Promise<Comment[]> => {
   )
   const snap = await getDocs(q)
   return snap.docs.map(commentFromDoc)
+}
+
+export const toggleCommentLike = async (
+  postId: string,
+  commentId: string,
+  userId: string,
+  alreadyLiked: boolean
+): Promise<void> => {
+  await updateDoc(doc(db, 'posts', postId, 'comments', commentId), {
+    likes: alreadyLiked ? arrayRemove(userId) : arrayUnion(userId),
+    likesCount: increment(alreadyLiked ? -1 : 1)
+  })
 }
 
 /**

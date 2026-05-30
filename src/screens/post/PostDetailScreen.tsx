@@ -18,6 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { Avatar } from '../../components/Avatar'
 import { CommentItem } from '../../components/CommentItem'
+import { HeartButton } from '../../components/HeartButton'
 import { useAuth } from '../../context/AuthContext'
 import { usePost } from '../../hooks/usePost'
 import { useUser } from '../../hooks/useUser'
@@ -116,7 +117,9 @@ export const PostDetailScreen = (): ReactElement => {
     )
   }
 
-  const renderComment: ListRenderItem<Comment> = ({ item }) => <CommentItem comment={item} />
+  const renderComment: ListRenderItem<Comment> = ({ item }) => (
+    <CommentItem comment={item} postId={post.postId} />
+  )
 
   const header = (
     <View>
@@ -142,19 +145,13 @@ export const PostDetailScreen = (): ReactElement => {
       <Text style={styles.body}>{post.content}</Text>
 
       <View style={styles.actions}>
-        <Pressable
+        <HeartButton
+          liked={liked}
+          count={post.likesCount}
           onPress={handleLike}
           disabled={!user}
-          hitSlop={8}
-          style={({ pressed }) => [styles.action, pressed && { opacity: 0.6 }]}
-        >
-          <Text style={[styles.actionIcon, liked && styles.actionIconActive]}>
-            {liked ? '♥' : '♡'}
-          </Text>
-          <Text style={[styles.actionText, liked && styles.actionTextActive]}>
-            {post.likesCount}
-          </Text>
-        </Pressable>
+          size={20}
+        />
         <View style={styles.action}>
           <Text style={styles.actionIcon}>💬</Text>
           <Text style={styles.actionText}>{post.commentsCount}</Text>
