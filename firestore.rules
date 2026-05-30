@@ -1,0 +1,126 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ─── Helpers ─────────────────────────────────────────────────────
+    function isAuthed() {
+      return request.auth != null;
+    }
+
+    function isSelf(uid) {
+      return isAuthed() && request.auth.uid == uid;
+    }
+
+    function changedKeys() {
+      return request.resource.data.diff(resource.data).affectedKeys();
+    }
+
+    // ─── Users ───────────────────────────────────────────────────────
+    match /users/{userId} {
+      // Any signed-in user can read profile docs (for feeds, author cards, etc.)
+      allow read: if isAuthed();
+
+      // First write must be self, and counters must start at zero
+      allow create: if isSelf(userId)
+        && request.resource.data.uid == userId
+        && request.resource.data.followersCount == 0
+        && request.resource.data.followingCount == 0;
+
+      // Self can update anything on their own profile
+      allow update: if isSelf(userId);
+
+      // Any signed-in user can bump THIS user's followersCount by exactly ±1
+      // (used when someone else follows/unfollows this user — see /followers/{...})
+      allow update: if isAuthed()
+        && changedKeys().hasOnly(['followersCount', 'updatedAt'])
+        && (request.resource.data.followersCount == resource.data.followersCount + 1
+            || request.resource.data.followersCount == resource.data.followersCount - 1);
+
+      // Only self can delete their profile doc
+      allow delete: if isSelf(userId);
+
+      // Following subcollection — owned by the FOLLOWER
+      // /users/{follower}/following/{target}
+      match /following/{targetUid} {
+        allow read: if isAuthed();
+        allow create, delete: if isSelf(userId);
+      }
+
+      // Followers subcollection — owned by the TARGET, written by the follower
+      // /users/{target}/followers/{follower}
+      match /followers/{followerUid} {
+        allow read: if isAuthed();
+        allow create, delete: if isSelf(followerUid);
+      }
+    }
+
+    // ─── Posts ───────────────────────────────────────────────────────
+    match /posts/{postId} {
+      // Posts are public to read (matches the social-feed model)
+      allow read: if true;
+
+      // Create: must be authored by the requester, counters start at zero
+      allow create: if isAuthed()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.likes.size() == 0
+        && request.resource.data.likesCount == 0
+        && request.resource.data.commentsCount == 0;
+
+      // Author can edit / delete their own post
+      allow update: if isSelf(resource.data.userId);
+      allow delete: if isSelf(resource.data.userId);
+
+      // Anyone signed-in can toggle their OWN like
+      // (modifies likes + likesCount + updatedAt only, and only by exactly one user)
+      allow update: if isAuthed() && isOwnLikeToggle();
+
+      // Anyone signed-in can bump commentsCount by exactly +1 when posting a comment
+      allow update: if isAuthed()
+        && changedKeys().hasOnly(['commentsCount', 'updatedAt'])
+        && request.resource.data.commentsCount == resource.data.commentsCount + 1;
+
+      // ─── Comments (subcollection) ──────────────────────────────────
+      match /comments/{commentId} {
+        // Anyone (even signed-out) can read comments — comments on public posts
+        allow read: if true;
+
+        allow create: if isAuthed()
+          && request.resource.data.userId == request.auth.uid
+          && request.resource.data.likes.size() == 0
+          && request.resource.data.likesCount == 0;
+
+        // Comment author can edit/delete their own comment
+        allow update: if isSelf(resource.data.userId);
+        allow delete: if isSelf(resource.data.userId);
+
+        // (Phase 2 hook: comment-like toggle by any authed user — mirrors post likes.
+        // Uncomment when you wire up CommentItem like buttons.)
+        // allow update: if isAuthed() && isOwnCommentLikeToggle();
+      }
+    }
+
+    // ─── Like-toggle guard ───────────────────────────────────────────
+    // Verifies an update only adds-or-removes exactly the requesting user's uid
+    // from `likes`, and adjusts `likesCount` by exactly the matching ±1.
+    function isOwnLikeToggle() {
+      let uid = request.auth.uid;
+      let cur = resource.data.likes;
+      let next = request.resource.data.likes;
+      let wasLiked = uid in cur;
+      let nowLiked = uid in next;
+      // The set of OTHER users' likes must be unchanged
+      let curOthers = cur.toSet().difference([uid].toSet());
+      let nextOthers = next.toSet().difference([uid].toSet());
+
+      return changedKeys().hasOnly(['likes', 'likesCount', 'updatedAt'])
+        && wasLiked != nowLiked
+        && curOthers == nextOthers
+        && next.size() == cur.size() + (nowLiked ? 1 : -1)
+        && request.resource.data.likesCount == resource.data.likesCount + (nowLiked ? 1 : -1);
+    }
+
+    // (Reserved for Phase 2 — same shape, different path)
+    // function isOwnCommentLikeToggle() { ... }
+  }
+}

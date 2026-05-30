@@ -269,15 +269,15 @@ src/
 
 ## 🛠️ Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| **Frontend** | React Native, Expo, TypeScript |
-| **Backend** | Firebase (Auth, Firestore, Storage) |
-| **State Management** | React Context API |
-| **Navigation** | React Navigation v6 |
-| **Animations** | React Native Reanimated 2 |
-| **UI Components** | Custom-built (no heavy libraries) |
-| **Styling** | React Native StyleSheet |
+| Layer                | Technology                          |
+| -------------------- | ----------------------------------- |
+| **Frontend**         | React Native, Expo, TypeScript      |
+| **Backend**          | Firebase (Auth, Firestore, Storage) |
+| **State Management** | React Context API                   |
+| **Navigation**       | React Navigation v6                 |
+| **Animations**       | React Native Reanimated 2           |
+| **UI Components**    | Custom-built (no heavy libraries)   |
+| **Styling**          | React Native StyleSheet             |
 
 ---
 
@@ -296,13 +296,13 @@ service cloud.firestore {
       allow read: if request.auth != null;
       allow write: if request.auth.uid == userId;
     }
-    
+
     // Posts are public to read, write only by author
     match /posts/{postId} {
       allow read: if true;
       allow create: if request.auth != null;
       allow update, delete: if request.auth.uid == resource.data.userId;
-      
+
       // Comments subcollection
       match /comments/{commentId} {
         allow read: if true;
@@ -423,8 +423,8 @@ pnpm run build
 ## 📞 Support & Contact
 
 - **Issues**: Open a GitHub issue for bugs or feature requests
-- **Email**: [darshan.regmi@example.com](mailto:darshan.regmi@example.com)
-- **Twitter/X**: [@bydarshanregmi](https://twitter.com/bydarshanregmi)
+- **Email**: [darshanregmi.official@gmail.com](mailto:darshanregmi.official@gmail.com)
+- **Twitter/X**: [@darshanregmi_np](https://twitter.com/darshanregmi_np)
 - **Portfolio**: [darshanregmi.com.np](https://darshanregmi.com.np)
 
 ---
@@ -455,4 +455,4 @@ Line is built with the belief that **poetry deserves a beautiful platform**. Eve
 
 **Made with 💚 by Darshan Regmi**
 
-*Last updated: December 2025*
+_Last updated: December 2025_

@@ -1,12 +1,12 @@
+import * as WebBrowser from 'expo-web-browser'
 import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
+  signInWithCredential,
   signInWithEmailAndPassword,
-  signInWithPopup,
   updateProfile
 } from 'firebase/auth'
-import { doc, setDoc } from 'firebase/firestore'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   ActivityIndicator,
   Animated,
@@ -21,7 +21,12 @@ import {
   View
 } from 'react-native'
 
-import { auth, db } from '../../config/firebase'
+import { auth } from '../../config/firebase'
+import { setPendingSignup } from '../../services/userService'
+import { colors } from '../../utils/colorScheme'
+import * as Google from 'expo-auth-session/providers/google'
+
+WebBrowser.maybeCompleteAuthSession()
 
 export const AuthScreen = () => {
   const [isLogin, setIsLogin] = useState(true)
@@ -33,6 +38,27 @@ export const AuthScreen = () => {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [flipAnim] = useState(new Animated.Value(0))
+
+  const [, googleResponse, promptGoogle] = Google.useAuthRequest({
+    iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
+    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID
+  })
+
+  useEffect(() => {
+    if (googleResponse?.type !== 'success') return
+    const idToken = googleResponse.authentication?.idToken
+    if (!idToken) return
+
+    const credential = GoogleAuthProvider.credential(idToken)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSubmitting(true)
+    signInWithCredential(auth, credential)
+      .catch((err) => {
+        setError(err?.message?.replace('Firebase: ', '') ?? 'Google sign-in failed.')
+      })
+      .finally(() => setSubmitting(false))
+  }, [googleResponse])
 
   const flipCard = () => {
     const toValue = isLogin ? 1 : 0
@@ -88,26 +114,16 @@ export const AuthScreen = () => {
       if (isLogin) {
         await signInWithEmailAndPassword(auth, email.trim(), password)
       } else {
-        const userCredential = await createUserWithEmailAndPassword(auth, email.trim(), password)
-
-        // Update user profile with display name
-        await updateProfile(userCredential.user, {
+        // Hand the user-typed values to ensureUserDoc (called from useAuthListener)
+        setPendingSignup({
+          username: username.trim().toLowerCase(),
           displayName: displayName.trim()
         })
 
-        // Store user metadata in Firestore
-        await setDoc(doc(db, 'users', userCredential.user.uid), {
-          uid: userCredential.user.uid,
-          username: username.trim(),
-          displayName: displayName.trim(),
-          email: email.trim(),
-          bio: '',
-          avatarType: 'initials',
-          avatarIndex: Math.floor(Math.random() * 10), // Random avatar seed
-          followersCount: 0,
-          followingCount: 0,
-          createdAt: new Date(),
-          updatedAt: new Date()
+        const userCredential = await createUserWithEmailAndPassword(auth, email.trim(), password)
+
+        await updateProfile(userCredential.user, {
+          displayName: displayName.trim()
         })
       }
     } catch (err: any) {
@@ -119,21 +135,14 @@ export const AuthScreen = () => {
   }
 
   const handleGoogleAuth = async () => {
-    setSubmitting(true)
     setError(null)
-
     try {
-      const provider = new GoogleAuthProvider()
-      await signInWithPopup(auth, provider)
+      await promptGoogle()
     } catch (err: any) {
-      const errorMsg = err?.message?.replace('Firebase: ', '') || 'Google sign-in failed.'
-      setError(errorMsg)
-    } finally {
-      setSubmitting(false)
+      setError(err?.message ?? 'Google sign-in failed.')
     }
   }
 
-  // Smooth interpolations for card rotation
   const frontRotateY = flipAnim.interpolate({
     inputRange: [0, 1],
     outputRange: ['0deg', '180deg']
@@ -144,7 +153,6 @@ export const AuthScreen = () => {
     outputRange: ['-180deg', '0deg']
   })
 
-  // Smooth opacity transitions
   const frontOpacity = flipAnim.interpolate({
     inputRange: [0, 0.5, 0.5, 1],
     outputRange: [1, 1, 0, 0]
@@ -166,7 +174,6 @@ export const AuthScreen = () => {
         bounces={false}
       >
         <View style={styles.cardContainer}>
-          {/* Login Card (Front) */}
           <Animated.View
             style={[
               styles.card,
@@ -177,15 +184,15 @@ export const AuthScreen = () => {
             ]}
             pointerEvents={isLogin ? 'auto' : 'none'}
           >
-            <Text style={styles.title}>Verse</Text>
+            <Text style={styles.title}>Line</Text>
             <Text style={styles.subtitle}>Welcome back</Text>
 
             {error && isLogin ? <Text style={styles.error}>{error}</Text> : null}
 
             <TextInput
-              style={[styles.input, { borderColor: email ? '#00D9FF' : '#2A2A2A' }]}
+              style={[styles.input, { borderColor: email ? colors.primary : colors.border }]}
               placeholder="Email"
-              placeholderTextColor="#666"
+              placeholderTextColor={colors.textMuted}
               autoCapitalize="none"
               keyboardType="email-address"
               value={email}
@@ -195,9 +202,9 @@ export const AuthScreen = () => {
             />
 
             <TextInput
-              style={[styles.input, { borderColor: password ? '#00D9FF' : '#2A2A2A' }]}
+              style={[styles.input, { borderColor: password ? colors.primary : colors.border }]}
               placeholder="Password"
-              placeholderTextColor="#666"
+              placeholderTextColor={colors.textMuted}
               secureTextEntry
               value={password}
               onChangeText={setPassword}
@@ -211,7 +218,7 @@ export const AuthScreen = () => {
               disabled={submitting}
             >
               {submitting ? (
-                <ActivityIndicator color="#0F0F0F" size="small" />
+                <ActivityIndicator color={colors.background} size="small" />
               ) : (
                 <Text style={styles.buttonText}>Log in</Text>
               )}
@@ -238,7 +245,6 @@ export const AuthScreen = () => {
             </Pressable>
           </Animated.View>
 
-          {/* Signup Card (Back) */}
           <Animated.View
             style={[
               styles.card,
@@ -250,15 +256,15 @@ export const AuthScreen = () => {
             ]}
             pointerEvents={!isLogin ? 'auto' : 'none'}
           >
-            <Text style={styles.title}>Verse</Text>
+            <Text style={styles.title}>Line</Text>
             <Text style={styles.subtitle}>Create account</Text>
 
             {error && !isLogin ? <Text style={styles.error}>{error}</Text> : null}
 
             <TextInput
-              style={[styles.input, { borderColor: displayName ? '#00D9FF' : '#2A2A2A' }]}
+              style={[styles.input, { borderColor: displayName ? colors.primary : colors.border }]}
               placeholder="Display Name"
-              placeholderTextColor="#666"
+              placeholderTextColor={colors.textMuted}
               autoCapitalize="words"
               value={displayName}
               onChangeText={setDisplayName}
@@ -266,9 +272,9 @@ export const AuthScreen = () => {
             />
 
             <TextInput
-              style={[styles.input, { borderColor: username ? '#00D9FF' : '#2A2A2A' }]}
+              style={[styles.input, { borderColor: username ? colors.primary : colors.border }]}
               placeholder="Username"
-              placeholderTextColor="#666"
+              placeholderTextColor={colors.textMuted}
               autoCapitalize="none"
               value={username}
               onChangeText={setUsername}
@@ -276,9 +282,9 @@ export const AuthScreen = () => {
             />
 
             <TextInput
-              style={[styles.input, { borderColor: email ? '#00D9FF' : '#2A2A2A' }]}
+              style={[styles.input, { borderColor: email ? colors.primary : colors.border }]}
               placeholder="Email"
-              placeholderTextColor="#666"
+              placeholderTextColor={colors.textMuted}
               autoCapitalize="none"
               keyboardType="email-address"
               value={email}
@@ -288,9 +294,9 @@ export const AuthScreen = () => {
             />
 
             <TextInput
-              style={[styles.input, { borderColor: password ? '#00D9FF' : '#2A2A2A' }]}
+              style={[styles.input, { borderColor: password ? colors.primary : colors.border }]}
               placeholder="Password"
-              placeholderTextColor="#666"
+              placeholderTextColor={colors.textMuted}
               secureTextEntry
               value={password}
               onChangeText={setPassword}
@@ -299,9 +305,12 @@ export const AuthScreen = () => {
             />
 
             <TextInput
-              style={[styles.input, { borderColor: confirmPassword ? '#00D9FF' : '#2A2A2A' }]}
+              style={[
+                styles.input,
+                { borderColor: confirmPassword ? colors.primary : colors.border }
+              ]}
               placeholder="Confirm Password"
-              placeholderTextColor="#666"
+              placeholderTextColor={colors.textMuted}
               secureTextEntry
               value={confirmPassword}
               onChangeText={setConfirmPassword}
@@ -314,7 +323,7 @@ export const AuthScreen = () => {
               disabled={submitting}
             >
               {submitting ? (
-                <ActivityIndicator color="#0F0F0F" size="small" />
+                <ActivityIndicator color={colors.background} size="small" />
               ) : (
                 <Text style={styles.buttonText}>Sign up</Text>
               )}
@@ -349,7 +358,7 @@ export const AuthScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F0F0F'
+    backgroundColor: colors.background
   },
   scrollContent: {
     flexGrow: 1,
@@ -365,7 +374,7 @@ const styles = StyleSheet.create({
     minHeight: 520
   },
   card: {
-    backgroundColor: '#1A1A1A',
+    backgroundColor: colors.surface,
     borderRadius: 20,
     padding: 32,
     backfaceVisibility: 'hidden'
@@ -377,30 +386,30 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 36,
-    color: '#FFFFFF',
+    color: colors.textPrimary,
     fontWeight: '700',
     marginBottom: 8,
     textAlign: 'center'
   },
   subtitle: {
     fontSize: 16,
-    color: '#A0A0A0',
+    color: colors.textSecondary,
     marginBottom: 32,
     textAlign: 'center'
   },
   input: {
-    backgroundColor: '#0F0F0F',
+    backgroundColor: colors.background,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
-    color: '#FFFFFF',
+    color: colors.textPrimary,
     marginBottom: 12,
     borderWidth: 1.5,
-    borderColor: '#2A2A2A',
+    borderColor: colors.border,
     fontSize: 16
   },
   button: {
-    backgroundColor: '#00D9FF',
+    backgroundColor: colors.primary,
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
@@ -408,11 +417,11 @@ const styles = StyleSheet.create({
     minHeight: 48
   },
   buttonPressed: {
-    backgroundColor: '#00B8D4',
+    backgroundColor: colors.primaryPressed,
     transform: [{ scale: 0.98 }]
   },
   buttonText: {
-    color: '#0F0F0F',
+    color: colors.background,
     fontWeight: '600',
     fontSize: 16
   },
@@ -424,10 +433,10 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#2A2A2A'
+    backgroundColor: colors.border
   },
   dividerText: {
-    color: '#666',
+    color: colors.textMuted,
     marginHorizontal: 12,
     fontSize: 14
   },
@@ -445,7 +454,7 @@ const styles = StyleSheet.create({
     transform: [{ scale: 0.98 }]
   },
   googleButtonText: {
-    color: '#0F0F0F',
+    color: colors.background,
     fontWeight: '600',
     fontSize: 16
   },
@@ -455,15 +464,15 @@ const styles = StyleSheet.create({
     paddingVertical: 8
   },
   switchText: {
-    color: '#A0A0A0',
+    color: colors.textSecondary,
     fontSize: 14
   },
   switchTextBold: {
-    color: '#00D9FF',
+    color: colors.primary,
     fontWeight: '600'
   },
   error: {
-    color: '#FF6B9D',
+    color: colors.accent,
     marginBottom: 12,
     textAlign: 'center',
     fontSize: 14,

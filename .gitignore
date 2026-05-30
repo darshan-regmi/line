@@ -1,38 +1,91 @@
-# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+# Learn more: https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
-# dependencies
+# ───── Dependencies ─────────────────────────────────────────────
 node_modules/
+.pnp.*
+.yarn/cache
+.yarn/install-state.gz
 
-# Expo
+# ───── Expo ─────────────────────────────────────────────────────
 .expo/
+.expo-shared/
 dist/
 web-build/
 expo-env.d.ts
 
-# Native
+# ───── Native build artifacts (Expo prebuild output) ────────────
+/ios
+/android
+*.apk
+*.aab
+*.ipa
+*.app
+*.dSYM
+*.dSYM.zip
+
+# ───── EAS Build ────────────────────────────────────────────────
+.eas/
+
+# ───── Native signing & secrets (NEVER commit) ──────────────────
 *.orig.*
 *.jks
+*.keystore
 *.p8
 *.p12
 *.key
+*.pem
 *.mobileprovision
+google-services.json
+GoogleService-Info.plist
+service-account*.json
+firebase-adminsdk-*.json
 
-# Metro
+# ───── Metro ────────────────────────────────────────────────────
 .metro-health-check*
 
-# debug
+# ───── Debug logs ───────────────────────────────────────────────
 npm-debug.*
 yarn-debug.*
 yarn-error.*
+pnpm-debug.*
+*.log
+firebase-debug.log*
+firestore-debug.log*
 
-# macOS
-.DS_Store
-*.pem
+# ───── Environment ──────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+.env.staging
+# Always keep the template
+!.env.example
 
-# local env files
-.env*.local
-
-# typescript
+# ───── TypeScript & build outputs ───────────────────────────────
 *.tsbuildinfo
 
+# ───── Test & coverage ──────────────────────────────────────────
+coverage/
+.nyc_output/
+
+# ───── macOS ────────────────────────────────────────────────────
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# ───── Windows ──────────────────────────────────────────────────
+Thumbs.db
+Desktop.ini
+
+# ───── IDE / Editor ─────────────────────────────────────────────
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+*.swo
+*~
+
+# ───── Misc scaffold ────────────────────────────────────────────
 app-example

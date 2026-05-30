@@ -1,8 +1,16 @@
-// src/config/firebase.ts
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { getApp, getApps, initializeApp } from 'firebase/app'
-import { browserLocalPersistence, getAuth, initializeAuth } from 'firebase/auth'
+import {
+  Auth,
+  browserLocalPersistence,
+  getAuth,
+  // @ts-expect-error - getReactNativePersistence is not in the public typings yet
+  getReactNativePersistence,
+  initializeAuth
+} from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 import { getStorage } from 'firebase/storage'
+import { Platform } from 'react-native'
 
 const firebaseConfig = {
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
@@ -14,16 +22,17 @@ const firebaseConfig = {
   measurementId: process.env.EXPO_PUBLIC_MEASUREMENT_ID
 }
 
-// Ensure we don’t re-initialize in fast refresh
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp()
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig)
 
-// Use initializeAuth on native to get proper persistence
-const auth =
-  getApps().length === 1
-    ? initializeAuth(app, {
-        persistence: browserLocalPersistence
-      })
-    : getAuth(app)
+let auth: Auth
+try {
+  auth = initializeAuth(app, {
+    persistence:
+      Platform.OS === 'web' ? browserLocalPersistence : getReactNativePersistence(AsyncStorage)
+  })
+} catch {
+  auth = getAuth(app)
+}
 
 const db = getFirestore(app)
 const storage = getStorage(app)
