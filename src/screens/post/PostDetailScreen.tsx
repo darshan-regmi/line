@@ -1,6 +1,6 @@
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
-import React, { ReactElement, useCallback, useEffect, useState } from 'react'
+import React, { ReactElement, useEffect, useState } from 'react'
 import {
   ActivityIndicator,
   Alert,
@@ -22,7 +22,7 @@ import { useAuth } from '../../context/AuthContext'
 import { usePost } from '../../hooks/usePost'
 import { useUser } from '../../hooks/useUser'
 import { MainStackParamList } from '../../navigation/MainStack'
-import { addComment, getComments } from '../../services/commentService'
+import { addComment, subscribeComments } from '../../services/commentService'
 import { toggleLike } from '../../services/postService'
 import { Comment } from '../../types'
 import { colors } from '../../utils/colorScheme'
@@ -45,21 +45,17 @@ export const PostDetailScreen = (): ReactElement => {
   const [posting, setPosting] = useState(false)
   const [likeBusy, setLikeBusy] = useState(false)
 
-  const loadComments = useCallback(async () => {
-    if (!post) return
-    setCommentsLoading(true)
-    try {
-      const result = await getComments(post.postId)
-      setComments(result)
-    } finally {
-      setCommentsLoading(false)
-    }
-  }, [post])
-
+  const postId = post?.postId
   useEffect(() => {
+    if (!postId) return
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    void loadComments()
-  }, [loadComments])
+    setCommentsLoading(true)
+    const unsubscribe = subscribeComments(postId, (next) => {
+      setComments(next)
+      setCommentsLoading(false)
+    })
+    return unsubscribe
+  }, [postId])
 
   const liked = !!user && !!post && post.likes.includes(user.uid)
 

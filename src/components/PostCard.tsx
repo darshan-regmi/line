@@ -1,4 +1,4 @@
-import React, { memo, ReactElement, useState } from 'react'
+import React, { memo, ReactElement, useEffect, useState } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 import { useAuth } from '../context/AuthContext'
@@ -27,6 +27,14 @@ const PostCardComponent = ({
   const { user: author } = useUser(post.userId)
   const [localPost, setLocalPost] = useState<Post>(post)
   const [busy, setBusy] = useState(false)
+
+  // Sync local state when the parent passes a new post (e.g., real-time
+  // listener fired or another user liked). Optimistic in-flight changes get
+  // overwritten by the canonical server value — desired behavior.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLocalPost(post)
+  }, [post])
 
   const liked = !!currentUser && localPost.likes.includes(currentUser.uid)
 

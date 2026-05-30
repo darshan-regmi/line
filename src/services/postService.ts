@@ -5,10 +5,12 @@ import {
   collection,
   doc,
   DocumentSnapshot,
+  FirestoreError,
   getDoc,
   getDocs,
   increment,
   limit,
+  onSnapshot,
   orderBy,
   query,
   QueryDocumentSnapshot,
@@ -74,16 +76,20 @@ export const getPost = async (postId: string): Promise<Post | null> => {
 
 export type FeedMode = 'latest' | 'trending'
 
+const sortConstraintsFor = (mode: FeedMode) =>
+  mode === 'trending'
+    ? [orderBy('likesCount', 'desc'), orderBy('createdAt', 'desc')]
+    : [orderBy('createdAt', 'desc')]
+
 export const getFeedPage = async (
   cursor: QueryDocumentSnapshot | null,
   mode: FeedMode = 'latest'
 ): Promise<FeedPage> => {
-  const sortConstraints =
-    mode === 'trending'
-      ? [orderBy('likesCount', 'desc'), orderBy('createdAt', 'desc')]
-      : [orderBy('createdAt', 'desc')]
-
-  const constraints = [where('isPublished', '==', true), ...sortConstraints, limit(PAGE_SIZE)]
+  const constraints = [
+    where('isPublished', '==', true),
+    ...sortConstraintsFor(mode),
+    limit(PAGE_SIZE)
+  ]
 
   const q = cursor
     ? query(collection(db, 'posts'), ...constraints, startAfter(cursor))
@@ -98,6 +104,34 @@ export const getFeedPage = async (
     cursor: nextCursor,
     hasMore: snap.docs.length === PAGE_SIZE
   }
+}
+
+/**
+ * Live subscription to the first page of the feed.
+ * The callback fires immediately and on any subsequent change.
+ * Returns an unsubscribe function.
+ */
+export const subscribeFeedFirstPage = (
+  mode: FeedMode,
+  onUpdate: (posts: Post[], lastDoc: QueryDocumentSnapshot | null) => void,
+  onError?: (err: FirestoreError) => void
+): (() => void) => {
+  const q = query(
+    collection(db, 'posts'),
+    where('isPublished', '==', true),
+    ...sortConstraintsFor(mode),
+    limit(PAGE_SIZE)
+  )
+
+  return onSnapshot(
+    q,
+    (snap) => {
+      const posts = snap.docs.map(postFromDoc)
+      const lastDoc = snap.docs.length > 0 ? snap.docs[snap.docs.length - 1]! : null
+      onUpdate(posts, lastDoc)
+    },
+    onError
+  )
 }
 
 export const getUserPosts = async (userId: string): Promise<Post[]> => {

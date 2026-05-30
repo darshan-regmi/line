@@ -1,73 +1,99 @@
 import { QueryDocumentSnapshot } from 'firebase/firestore'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
-import { FeedMode, getFeedPage } from '../services/postService'
+import { FeedMode, getFeedPage, subscribeFeedFirstPage } from '../services/postService'
 
 import { Post } from '../types'
 
+/**
+ * Real-time feed hook.
+ *
+ * First page is driven by an `onSnapshot` listener so new posts, likes, and
+ * comment counts surface live. Pagination (page 2+) stays one-shot via
+ * `getFeedPage` to keep listener costs bounded — the listener only watches
+ * the top `PAGE_SIZE` documents.
+ *
+ * `posts` merges the live first page with any paginated extras, deduped by
+ * postId so a post that climbs back into the first page doesn't double-render.
+ */
 export const useFeed = (mode: FeedMode = 'latest') => {
-  const [posts, setPosts] = useState<Post[]>([])
-  const [cursor, setCursor] = useState<QueryDocumentSnapshot | null>(null)
+  const [firstPage, setFirstPage] = useState<Post[]>([])
+  const [firstPageLastDoc, setFirstPageLastDoc] = useState<QueryDocumentSnapshot | null>(null)
+  const [extras, setExtras] = useState<Post[]>([])
+  const [extrasCursor, setExtrasCursor] = useState<QueryDocumentSnapshot | null>(null)
   const [hasMore, setHasMore] = useState(true)
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const loadFirst = useCallback(async () => {
+  // Real-time subscription to the first page
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true)
     setError(null)
-    try {
-      const page = await getFeedPage(null, mode)
-      setPosts(page.posts)
-      setCursor(page.cursor)
-      setHasMore(page.hasMore)
-    } catch (e: any) {
-      setError(e?.message ?? 'Failed to load feed')
-    } finally {
-      setLoading(false)
-    }
+
+    const unsubscribe = subscribeFeedFirstPage(
+      mode,
+      (posts, lastDoc) => {
+        setFirstPage(posts)
+        setFirstPageLastDoc(lastDoc)
+        setLoading(false)
+      },
+      (err) => {
+        setError(err.message)
+        setLoading(false)
+      }
+    )
+
+    return unsubscribe
   }, [mode])
 
-  const refresh = useCallback(async () => {
-    setRefreshing(true)
-    setError(null)
-    try {
-      const page = await getFeedPage(null, mode)
-      setPosts(page.posts)
-      setCursor(page.cursor)
-      setHasMore(page.hasMore)
-    } catch (e: any) {
-      setError(e?.message ?? 'Failed to refresh feed')
-    } finally {
-      setRefreshing(false)
+  const posts = useMemo<Post[]>(() => {
+    const seen = new Set<string>()
+    const merged: Post[] = []
+    for (const p of [...firstPage, ...extras]) {
+      if (!seen.has(p.postId)) {
+        seen.add(p.postId)
+        merged.push(p)
+      }
     }
-  }, [mode])
+    return merged
+  }, [firstPage, extras])
+
+  // The listener already keeps the first page fresh; "refresh" just resets the
+  // paginated extras so the user lands back at the top of the live window.
+  const refresh = useCallback(() => {
+    setRefreshing(true)
+    setExtras([])
+    setExtrasCursor(null)
+    setHasMore(true)
+    // Brief visual feedback for the pull gesture
+    setTimeout(() => setRefreshing(false), 250)
+  }, [])
 
   const loadMore = useCallback(async () => {
-    if (!hasMore || loading || refreshing || !cursor) return
+    if (!hasMore || loading || refreshing) return
+    const cursor = extrasCursor ?? firstPageLastDoc
+    if (!cursor) return
+
     try {
       const page = await getFeedPage(cursor, mode)
-      setPosts((prev) => [...prev, ...page.posts])
-      setCursor(page.cursor)
+      setExtras((prev) => [...prev, ...page.posts])
+      setExtrasCursor(page.cursor)
       setHasMore(page.hasMore)
     } catch (e: any) {
       setError(e?.message ?? 'Failed to load more')
     }
-  }, [cursor, hasMore, loading, refreshing, mode])
+  }, [extrasCursor, firstPageLastDoc, hasMore, loading, refreshing, mode])
 
+  // Optimistic replacement — patches both layers so the change is instant.
+  // The first-page listener will overwrite firstPage shortly after with the
+  // canonical value from Firestore (typically a no-op if the optimistic
+  // patch matches the server state).
   const replacePost = useCallback((updated: Post) => {
-    setPosts((prev) => prev.map((p) => (p.postId === updated.postId ? updated : p)))
+    setFirstPage((prev) => prev.map((p) => (p.postId === updated.postId ? updated : p)))
+    setExtras((prev) => prev.map((p) => (p.postId === updated.postId ? updated : p)))
   }, [])
-
-  const prependPost = useCallback((newPost: Post) => {
-    setPosts((prev) => [newPost, ...prev])
-  }, [])
-
-  useEffect(() => {
-    // Initial load on mount; loadFirst manages its own loading flag.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void loadFirst()
-  }, [loadFirst])
 
   return {
     posts,
@@ -77,7 +103,6 @@ export const useFeed = (mode: FeedMode = 'latest') => {
     error,
     refresh,
     loadMore,
-    replacePost,
-    prependPost
+    replacePost
   }
 }

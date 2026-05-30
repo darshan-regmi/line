@@ -2,9 +2,11 @@ import {
   addDoc,
   collection,
   doc,
+  FirestoreError,
   getDocs,
   increment,
   limit,
+  onSnapshot,
   orderBy,
   query,
   QueryDocumentSnapshot,
@@ -57,4 +59,23 @@ export const getComments = async (postId: string): Promise<Comment[]> => {
   )
   const snap = await getDocs(q)
   return snap.docs.map(commentFromDoc)
+}
+
+/**
+ * Live subscription to a post's comments.
+ * Callback fires immediately and on every change.
+ * Returns an unsubscribe function.
+ */
+export const subscribeComments = (
+  postId: string,
+  onUpdate: (comments: Comment[]) => void,
+  onError?: (err: FirestoreError) => void
+): (() => void) => {
+  const q = query(
+    collection(db, 'posts', postId, 'comments'),
+    orderBy('createdAt', 'desc'),
+    limit(50)
+  )
+
+  return onSnapshot(q, (snap) => onUpdate(snap.docs.map(commentFromDoc)), onError)
 }
