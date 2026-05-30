@@ -54,9 +54,11 @@ export const createPost = async (input: {
   content: string
   isPublished?: boolean
 }): Promise<string> => {
+  const title = input.title.trim()
   const ref = await addDoc(collection(db, 'posts'), {
     userId: input.userId,
-    title: input.title.trim(),
+    title,
+    titleLower: title.toLowerCase(),
     content: input.content.trim(),
     likes: [],
     likesCount: 0,
@@ -140,6 +142,28 @@ export const getUserPosts = async (userId: string): Promise<Post[]> => {
     where('userId', '==', userId),
     orderBy('createdAt', 'desc'),
     limit(50)
+  )
+  const snap = await getDocs(q)
+  return snap.docs.map(postFromDoc)
+}
+
+/**
+ * Prefix-match published posts by lowercased title. Existing posts
+ * without `titleLower` won't appear (no backfill performed).
+ */
+export const searchPosts = async (prefix: string, max = 10): Promise<Post[]> => {
+  const lower = prefix.trim().toLowerCase()
+  if (!lower) return []
+
+  const upperBound = lower + '\uf8ff'
+
+  const q = query(
+    collection(db, 'posts'),
+    where('isPublished', '==', true),
+    where('titleLower', '>=', lower),
+    where('titleLower', '<', upperBound),
+    orderBy('titleLower'),
+    limit(max)
   )
   const snap = await getDocs(q)
   return snap.docs.map(postFromDoc)

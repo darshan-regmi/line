@@ -1,12 +1,18 @@
 import { User as FirebaseUser } from 'firebase/auth'
 import {
+  collection,
   deleteDoc,
   doc,
   getDoc,
+  getDocs,
   increment,
+  limit,
+  orderBy,
+  query,
   serverTimestamp,
   setDoc,
-  updateDoc
+  updateDoc,
+  where
 } from 'firebase/firestore'
 
 import { db } from '../config/firebase'
@@ -36,11 +42,16 @@ export const ensureUserDoc = async (firebaseUser: FirebaseUser): Promise<UserPro
   const emailPrefix = firebaseUser.email?.split('@')[0] ?? ''
   const fallbackUsername = sanitizeUsername(emailPrefix) + firebaseUser.uid.slice(-4).toLowerCase()
 
+  const username = signup?.username ?? fallbackUsername
+  const displayName = signup?.displayName ?? firebaseUser.displayName ?? 'Poet'
+
   await setDoc(doc(db, 'users', firebaseUser.uid), {
     uid: firebaseUser.uid,
-    username: signup?.username ?? fallbackUsername,
+    username,
+    usernameLower: username.toLowerCase(),
     email: firebaseUser.email ?? '',
-    displayName: signup?.displayName ?? firebaseUser.displayName ?? 'Poet',
+    displayName,
+    displayNameLower: displayName.toLowerCase(),
     bio: '',
     avatarType: 'initials',
     avatarIndex: Math.floor(Math.random() * 10),
@@ -78,10 +89,15 @@ export const updateUser = async (
   uid: string,
   updates: Partial<Pick<UserProfile, 'displayName' | 'bio' | 'avatarIndex'>>
 ): Promise<void> => {
-  await updateDoc(doc(db, 'users', uid), {
+  const enriched: Record<string, unknown> = {
     ...updates,
     updatedAt: serverTimestamp()
-  })
+  }
+  // Keep displayNameLower in sync so search results reflect renames
+  if (updates.displayName !== undefined) {
+    enriched.displayNameLower = updates.displayName.toLowerCase()
+  }
+  await updateDoc(doc(db, 'users', uid), enriched)
 }
 
 export const followUser = async (currentUid: string, targetUid: string): Promise<void> => {
@@ -121,4 +137,40 @@ export const getUsersByIds = async (uids: string[]): Promise<UserProfile[]> => {
   if (uids.length === 0) return []
   const results = await Promise.all(uids.map((uid) => getUser(uid)))
   return results.filter((u): u is UserProfile => u !== null)
+}
+
+const userFromQueryDoc = (snap: { id: string; data: () => any }): UserProfile => {
+  const data = snap.data() ?? {}
+  return {
+    uid: snap.id,
+    username: data.username ?? '',
+    email: data.email ?? '',
+    displayName: data.displayName ?? '',
+    bio: data.bio ?? '',
+    avatarType: data.avatarType ?? 'initials',
+    avatarIndex: data.avatarIndex ?? 0,
+    followersCount: data.followersCount ?? 0,
+    followingCount: data.followingCount ?? 0,
+    createdAt: data.createdAt ?? null,
+    updatedAt: data.updatedAt ?? null
+  }
+}
+
+/**
+ * Prefix-match users by lowercased username. Existing docs without
+ * `usernameLower` won't appear (no backfill performed).
+ */
+export const searchUsers = async (prefix: string, max = 10): Promise<UserProfile[]> => {
+  const lower = prefix.trim().toLowerCase()
+  if (!lower) return []
+
+  const q = query(
+    collection(db, 'users'),
+    where('usernameLower', '>=', lower),
+    where('usernameLower', '<', lower + '\uf8ff'),
+    orderBy('usernameLower'),
+    limit(max)
+  )
+  const snap = await getDocs(q)
+  return snap.docs.map(userFromQueryDoc)
 }
