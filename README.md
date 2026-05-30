@@ -151,60 +151,59 @@ posts/{postId}/comments/{commentId}
 
 ### Prerequisites
 
-- Node.js 16+ & npm
-- Expo CLI: `pnpm install -g eas-cli`
-- Firebase project (create at [console.firebase.google.com](https://console.firebase.google.com))
+- Node.js 18+ and npm
+- A Firebase project (create at [console.firebase.google.com](https://console.firebase.google.com))
+- For Google sign-in: a Google Cloud OAuth client (iOS, Android, Web) linked to the same project
+- Optional: `firebase-tools` for deploying rules/indexes from the CLI
 
 ### Installation
 
 1. **Clone the repository**
 
-```bash
-git clone https://github.com/darshan-regmi/line.git
-cd line
-```
+   ```bash
+   git clone https://github.com/darshan-regmi/line.git
+   cd line
+   ```
 
 2. **Install dependencies**
 
-```bash
-pnpm install
-```
+   ```bash
+   npm install
+   ```
 
 3. **Set up Firebase**
    - Create a Firebase project
-   - Enable: Authentication (Email/Password), Firestore
-   - Download your Firebase config
+   - Enable **Authentication** (Email/Password + Google) and **Firestore**
+   - Copy your web app config
 
 4. **Configure environment variables**
 
-```bash
-# Create .env.local
-EXPO_PUBLIC_FIREBASE_API_KEY=your_api_key
-EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
-EXPO_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
-EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
-EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-EXPO_PUBLIC_FIREBASE_APP_ID=your_app_id
-```
+   Copy `.env.example` → `.env.local` and fill in the values:
 
-5. **Start the dev server**
+   ```bash
+   cp .env.example .env.local
+   ```
 
-```bash
-pnpm start
-```
+   All required keys are documented in `.env.example` (Firebase config + Google OAuth client IDs for iOS/Android/Web).
 
-6. **Run on device or emulator**
+5. **Deploy Firestore rules and indexes**
 
-```bash
-# iOS
-pnpm run ios
+   ```bash
+   npm install -g firebase-tools
+   firebase login
+   firebase deploy --only firestore
+   ```
 
-# Android
-pnpm run android
+   This publishes `firestore.rules` and the composite indexes in `firestore.indexes.json`.
 
-# Web
-pnpm run web
-```
+6. **Start the dev server**
+
+   ```bash
+   npm start            # Metro bundler
+   npx expo start --go  # forces Expo Go mode for QR-code testing on a phone
+   ```
+
+   > **Note:** Google sign-in does **not** work in Expo Go (Google's OAuth policy rejects `exp://` URIs). To test Google sign-in on a device, build a development build with `eas build --profile development`.
 
 ---
 
@@ -213,114 +212,118 @@ pnpm run web
 ```
 src/
 ├── config/
-│   └── firebase.ts                 # Firebase initialization
+│   └── firebase.ts                  # Firebase init (web + native persistence)
+├── types/
+│   └── index.ts                     # Post, Comment, UserProfile types
 ├── screens/
 │   ├── auth/
-│   │   └── LoginScreen.tsx         # Login/Signup with flip animation
+│   │   └── LoginScreen.tsx          # Login/Signup with flip animation
 │   ├── home/
-│   │   └── HomeScreen.tsx          # Feed & recommendations
-│   ├── profile/
-│   │   ├── ProfileScreen.tsx       # User profile view
-│   │   └── EditProfileScreen.tsx   # Edit profile modal
+│   │   └── HomeScreen.tsx           # Paginated feed + pull-to-refresh
 │   ├── explore/
-│   │   ├── ExploreScreen.tsx       # Trending & search
-│   │   └── UserSearchScreen.tsx
-│   └── create/
-│       └── CreatePostScreen.tsx    # Compose poem
+│   │   └── ExploreScreen.tsx        # Trending & search (stub — Phase 2)
+│   ├── create/
+│   │   └── CreatePostScreen.tsx     # Compose poem
+│   ├── post/
+│   │   └── PostDetailScreen.tsx    # Full post + comments + composer
+│   └── profile/
+│       ├── ProfileScreen.tsx        # Profile header + user's posts
+│       └── EditProfileScreen.tsx    # Edit display name / bio (modal)
 ├── components/
-│   ├── Avatar.tsx                  # Initials avatar
-│   ├── PostCard.tsx                # Post display
-│   ├── CommentItem.tsx             # Comment with interactions
-│   ├── UserCard.tsx                # User profile card
-│   └── AnimatedButton.tsx          # Pressable with feedback
+│   ├── Avatar.tsx                   # Initials avatar
+│   ├── PostCard.tsx                 # Post tile with optimistic like
+│   ├── CommentItem.tsx              # Comment row
+│   └── AnimatedButton.tsx           # Pressable with feedback
 ├── services/
-│   ├── authService.ts              # Auth functions
-│   ├── postService.ts              # CRUD for posts
-│   ├── userService.ts              # User data operations
-│   └── firestoreService.ts         # Generic Firestore helpers
+│   ├── postService.ts               # CRUD + paginated feed queries
+│   ├── userService.ts               # User doc + follow/unfollow
+│   └── commentService.ts            # Comment CRUD
 ├── hooks/
-│   ├── useAuthListener.ts          # Auth state management
-│   ├── usePost.ts                  # Post real-time listener
-│   └── useUser.ts                  # User data hook
+│   ├── useAuthListener.ts           # Auth state + ensureUserDoc
+│   ├── useFeed.ts                   # Paginated feed state machine
+│   ├── usePost.ts                   # Single post fetch
+│   └── useUser.ts                   # User lookup with in-memory cache
 ├── context/
-│   ├── AuthContext.tsx             # Auth provider
-│   └── PostContext.tsx             # Post state management
+│   └── AuthContext.tsx              # Auth provider + signOut
 ├── utils/
-│   ├── formatters.ts               # Date, text formatting
-│   ├── validators.ts               # Input validation
-│   ├── colorScheme.ts              # Color constants
-│   └── avatarHelpers.ts            # Avatar generation
-├── animations/
-│   └── transitions.ts              # Reanimated 2 configs
+│   ├── formatters.ts                # Date + text formatting
+│   ├── colorScheme.ts               # Color tokens (dark palette)
+│   └── avatarHelpers.ts             # Initials + color generation
 ├── navigation/
-│   ├── AppNavigator.tsx            # Root navigator
-│   ├── AuthStack.tsx               # Auth screens
-│   └── MainTabs.tsx                # Bottom tabs
-├── assets/
-│   ├── icons/                      # SVG icons
-│   ├── fonts/                      # Inter font files
-│   └── animations/                 # Lottie files
-├── App.tsx                         # Root component
-└── index.ts                        # Entry point
+│   ├── AppNavigator.tsx             # Auth vs Main switch
+│   ├── AuthStack.tsx                # Login screen
+│   ├── MainTabs.tsx                 # Home / Explore / Create / Profile
+│   └── MainStack.tsx                # Wraps tabs + modal routes
+└── App.tsx                          # Root: Gesture/Safe/Auth/Navigator
 
+assets/
+├── icon.png                         # 1024² app icon (iOS)
+├── adaptive-icon.png                # 1024² Android foreground
+├── splash-icon.png                  # 1024² splash artwork
+├── favicon.png                      # 48² web favicon
+└── sources/                         # SVG sources for the above
+
+# Backend infra (project root)
+firestore.rules                      # Security rules (deployed)
+firestore.indexes.json               # Composite indexes (deployed)
+firebase.json                        # Firebase CLI config
+.firebaserc                          # Project alias
+.env.example                         # Template for .env.local
 ```
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Layer                | Technology                          |
-| -------------------- | ----------------------------------- |
-| **Frontend**         | React Native, Expo, TypeScript      |
-| **Backend**          | Firebase (Auth, Firestore, Storage) |
-| **State Management** | React Context API                   |
-| **Navigation**       | React Navigation v6                 |
-| **Animations**       | React Native Reanimated 2           |
-| **UI Components**    | Custom-built (no heavy libraries)   |
-| **Styling**          | React Native StyleSheet             |
+| Layer                | Technology                                      |
+| -------------------- | ----------------------------------------------- |
+| **Frontend**         | React Native 0.85, Expo SDK 56, TypeScript 6    |
+| **Backend**          | Firebase (Auth, Firestore, Storage)             |
+| **Auth persistence** | `@react-native-async-storage/async-storage`     |
+| **Google sign-in**   | `expo-auth-session` (requires dev build)        |
+| **State management** | React Context API                               |
+| **Navigation**       | React Navigation v7 (native-stack + bottom-tab) |
+| **Animations**       | React Native Animated API + Reanimated 4        |
+| **UI components**    | Custom-built (no heavy UI libraries)            |
+| **Styling**          | React Native `StyleSheet`                       |
 
 ---
 
 ## 🔒 Security
 
-### Firebase Security Rules
+### Firestore Rules
 
-#### Firestore
+The deployed rules live in [`firestore.rules`](firestore.rules). They allow:
 
-```javascript
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    // Users can read all users, write only their own
-    match /users/{userId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth.uid == userId;
-    }
+- **Users:** any signed-in user can read profiles; only self can write profile fields; any signed-in user can bump another user's `followersCount` by ±1 (for the follow flow).
+- **Posts:** publicly readable; only the author can edit or delete; any signed-in user can toggle their own like (`isOwnLikeToggle()` enforces that only the requester's uid moves in/out of the `likes` array); any signed-in user can bump `commentsCount` by exactly +1 when creating a comment.
+- **Comments:** publicly readable; only the comment author can edit or delete.
 
-    // Posts are public to read, write only by author
-    match /posts/{postId} {
-      allow read: if true;
-      allow create: if request.auth != null;
-      allow update, delete: if request.auth.uid == resource.data.userId;
+The narrow carve-outs for likes and comment-count bumps are what make the social interactions possible without exposing other post fields to non-authors.
 
-      // Comments subcollection
-      match /comments/{commentId} {
-        allow read: if true;
-        allow create: if request.auth != null;
-        allow update, delete: if request.auth.uid == resource.data.userId;
-      }
-    }
-  }
-}
+### Composite Indexes
+
+The deployed indexes live in [`firestore.indexes.json`](firestore.indexes.json):
+
+- `posts` collection — `isPublished` ASC + `createdAt` DESC (Home feed)
+- `posts` collection — `userId` ASC + `createdAt` DESC (a user's posts)
+
+### Deploy
+
+```bash
+firebase deploy --only firestore           # both rules and indexes
+firebase deploy --only firestore:rules     # rules only
+firebase deploy --only firestore:indexes   # indexes only
 ```
 
-#### Storage
+### Storage Rules
+
+Not deployed yet — Storage uploads aren't used in Phase 1 (avatars are initials-based). A starter rule for when avatars come in Phase 2:
 
 ```javascript
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    // Users can only upload to their own folder
     match /users/{userId}/{allPaths=**} {
       allow read: if true;
       allow write: if request.auth.uid == userId && request.resource.size < 5 * 1024 * 1024;
@@ -333,22 +336,48 @@ service firebase.storage {
 
 ## 📈 Implementation Roadmap
 
-### Phase 1: MVP (Current)
+### Phase 1: MVP ✅ Complete
 
 - [x] Firebase Auth (Email/Password, Google)
-- [ ] User signup & profile creation
-- [ ] Post creation & publishing
-- [ ] Home feed with pagination
-- [ ] Like & comment system
-- [ ] User profiles
+- [x] User signup + profile auto-creation on any sign-in path
+- [x] Post creation & publishing
+- [x] Home feed with pagination (10 per page, pull-to-refresh, infinite scroll)
+- [x] Like + comment system (optimistic UI on PostCard and PostDetail)
+- [x] User profiles (header, stats, posts list, edit modal)
+- [x] Firestore security rules and composite indexes deployed
+- [x] Dark-mode brand icon set
 
-### Phase 2: Polish & Engagement
+### Phase 2: Polish & Engagement (In Progress)
 
-- [ ] Real-time notifications (likes/comments)
-- [ ] Firebase Cloud Messaging integration
-- [ ] Post sharing & social features
-- [ ] Advanced search & filters
-- [ ] User recommendations engine
+**Social graph (extends Phase 1 services with UI)**
+
+- [ ] Other-user profile screen (read-only profile view)
+- [ ] Follow / unfollow button + live counter updates
+- [ ] Trending Explore tab (`posts` sorted by `likesCount` DESC)
+
+**Real-time UX**
+
+- [ ] `onSnapshot` listeners on home feed
+- [ ] `onSnapshot` listeners on comments in PostDetail
+- [ ] Animated heart bounce on like
+- [ ] "View likes" modal listing users who liked a post
+- [ ] Comment like / unlike
+
+**Sharing & search**
+
+- [ ] Native share sheet (`expo-sharing`) for posts
+- [ ] Basic prefix search on `usernameLower` / `titleLower` fields
+- [ ] Debounced search input with empty + loading states
+
+**Notifications**
+
+- [ ] Firebase Cloud Messaging integration (push tokens stored in Firestore)
+- [ ] Real-time notification doc writes on like / comment / follow
+- [ ] Notification center UI
+
+**Discovery**
+
+- [ ] User recommendations based on follow graph and activity
 
 ### Phase 3: Scale & Community
 
@@ -396,27 +425,36 @@ Please ensure:
 - Lazy load images with caching
 - Avoid re-renders with `useCallback`
 
-### Testing
+### Quality checks
 
 ```bash
-# Run tests
-pnpm test
+# TypeScript + ESLint
+npm run lint
 
-# Run linter
-pnpm run lint
+# TypeScript only
+npm run check-typescript
 
-# Build for production
-pnpm run build
+# ESLint only
+npm run check-eslint
+
+# Format with Prettier
+npm run prettier
+
+# Tests (when configured)
+npm test
 ```
+
+Pre-commit hooks (Husky + lint-staged) run ESLint + Prettier on changed `*.{ts,tsx}` files automatically.
 
 ---
 
 ## 🐛 Known Issues & Limitations
 
-- **Google Sign-In**: Requires Firebase project configuration in Google Cloud Console
-- **Avatar Storage**: Currently uses initials only; pre-made icons coming in Phase 2
-- **Real-time**: Firestore listeners may incur costs at scale; consider caching strategies
-- **Push Notifications**: Not yet integrated; planned for Phase 2
+- **Google sign-in in Expo Go:** Google's OAuth 2.0 policy rejects custom URI schemes like `exp://`, so the Google button only works in a **development build** (not Expo Go). Build one with `eas build --profile development` to test it on a phone.
+- **Avatars:** initials-only for Phase 1; image uploads to Firebase Storage come in Phase 2.
+- **Real-time:** the feed currently fetches on focus/refresh rather than using `onSnapshot` listeners. Real-time is planned for Phase 2 (and has cost implications at scale).
+- **Push notifications:** not integrated; planned for Phase 2 (FCM).
+- **Username uniqueness:** Firestore rules can't enforce cross-document uniqueness. Phase 2 will add a separate `usernames/{username}` lookup collection if needed.
 
 ---
 
@@ -455,4 +493,4 @@ Line is built with the belief that **poetry deserves a beautiful platform**. Eve
 
 **Made with 💚 by Darshan Regmi**
 
-_Last updated: December 2025_
+_Last updated: May 2026 — Phase 1 MVP complete, Phase 2 in progress_
