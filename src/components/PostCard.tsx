@@ -13,10 +13,16 @@ import { Avatar } from './Avatar'
 type Props = {
   post: Post
   onPress?: () => void
+  onAuthorPress?: (userId: string) => void
   onLikeToggled?: (updated: Post) => void
 }
 
-const PostCardComponent = ({ post, onPress, onLikeToggled }: Props): ReactElement => {
+const PostCardComponent = ({
+  post,
+  onPress,
+  onAuthorPress,
+  onLikeToggled
+}: Props): ReactElement => {
   const { user: currentUser } = useAuth()
   const { user: author } = useUser(post.userId)
   const [localPost, setLocalPost] = useState<Post>(post)
@@ -52,7 +58,12 @@ const PostCardComponent = ({ post, onPress, onLikeToggled }: Props): ReactElemen
       onPress={onPress}
       style={({ pressed }) => [styles.card, pressed && { opacity: 0.85 }]}
     >
-      <View style={styles.header}>
+      <Pressable
+        onPress={onAuthorPress ? () => onAuthorPress(post.userId) : undefined}
+        disabled={!onAuthorPress}
+        style={({ pressed }) => [styles.header, pressed && onAuthorPress && { opacity: 0.7 }]}
+        hitSlop={4}
+      >
         <Avatar name={author?.displayName ?? '?'} avatarIndex={author?.avatarIndex} size={36} />
         <View style={styles.headerText}>
           <Text style={styles.author} numberOfLines={1}>
@@ -62,7 +73,7 @@ const PostCardComponent = ({ post, onPress, onLikeToggled }: Props): ReactElemen
             @{author?.username ?? '...'} · {formatRelativeTime(localPost.createdAt)}
           </Text>
         </View>
-      </View>
+      </Pressable>
 
       {localPost.title ? <Text style={styles.title}>{localPost.title}</Text> : null}
       <Text style={styles.body}>{truncate(localPost.content, 280)}</Text>

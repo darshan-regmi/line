@@ -1,4 +1,5 @@
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
+import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import React, { ReactElement, useCallback, useEffect, useState } from 'react'
 import {
   ActivityIndicator,
@@ -28,10 +29,11 @@ import { colors } from '../../utils/colorScheme'
 import { formatRelativeTime } from '../../utils/formatters'
 
 type R = RouteProp<MainStackParamList, 'PostDetail'>
+type Nav = NativeStackNavigationProp<MainStackParamList>
 
 export const PostDetailScreen = (): ReactElement => {
   const route = useRoute<R>()
-  const nav = useNavigation()
+  const nav = useNavigation<Nav>()
   const { user } = useAuth()
 
   const { post, setPost, loading } = usePost(route.params.postId)
@@ -122,7 +124,11 @@ export const PostDetailScreen = (): ReactElement => {
 
   const header = (
     <View>
-      <View style={styles.authorRow}>
+      <Pressable
+        onPress={() => nav.navigate('UserProfile', { userId: post.userId })}
+        style={({ pressed }) => [styles.authorRow, pressed && { opacity: 0.7 }]}
+        hitSlop={4}
+      >
         <Avatar
           name={author?.displayName ?? '?'}
           avatarIndex={author?.avatarIndex ?? 0}
@@ -134,7 +140,7 @@ export const PostDetailScreen = (): ReactElement => {
             @{author?.username ?? '...'} · {formatRelativeTime(post.createdAt)}
           </Text>
         </View>
-      </View>
+      </Pressable>
 
       {post.title ? <Text style={styles.title}>{post.title}</Text> : null}
       <Text style={styles.body}>{post.content}</Text>

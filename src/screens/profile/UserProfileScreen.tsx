@@ -1,4 +1,4 @@
-import { useFocusEffect, useNavigation } from '@react-navigation/native'
+import { RouteProp, useFocusEffect, useNavigation, useRoute } from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import React, { ReactElement, useCallback, useState } from 'react'
 import {
@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { Avatar } from '../../components/Avatar'
+import { FollowButton } from '../../components/FollowButton'
 import { PostCard } from '../../components/PostCard'
 import { useAuth } from '../../context/AuthContext'
 import { invalidateUserCache, useUser } from '../../hooks/useUser'
@@ -21,27 +22,32 @@ import { getUserPosts } from '../../services/postService'
 import { Post } from '../../types'
 import { colors } from '../../utils/colorScheme'
 
+type R = RouteProp<MainStackParamList, 'UserProfile'>
 type Nav = NativeStackNavigationProp<MainStackParamList>
 
-export const ProfileScreen = (): ReactElement => {
+export const UserProfileScreen = (): ReactElement => {
+  const route = useRoute<R>()
   const nav = useNavigation<Nav>()
-  const { user, signOut } = useAuth()
-  const { user: profile, loading: profileLoading } = useUser(user?.uid)
+  const { user: currentUser } = useAuth()
+  const targetUid = route.params.userId
+  const isSelf = currentUser?.uid === targetUid
+
+  const { user: profile, loading: profileLoading } = useUser(targetUid)
 
   const [posts, setPosts] = useState<Post[]>([])
   const [postsLoading, setPostsLoading] = useState(true)
+  const [optimisticFollowerDelta, setOptimisticFollowerDelta] = useState(0)
 
   const reload = useCallback(async () => {
-    if (!user) return
-    if (user.uid) invalidateUserCache(user.uid)
+    invalidateUserCache(targetUid)
     setPostsLoading(true)
     try {
-      const result = await getUserPosts(user.uid)
+      const result = await getUserPosts(targetUid)
       setPosts(result.filter((p) => p.isPublished))
     } finally {
       setPostsLoading(false)
     }
-  }, [user])
+  }, [targetUid])
 
   useFocusEffect(
     useCallback(() => {
@@ -60,48 +66,55 @@ export const ProfileScreen = (): ReactElement => {
     [nav]
   )
 
+  const followersDisplay = (profile?.followersCount ?? 0) + optimisticFollowerDelta
+
   const header = (
     <View style={styles.headerCard}>
       <View style={styles.headerRow}>
         <Avatar
-          name={profile?.displayName ?? user?.displayName ?? '?'}
+          name={profile?.displayName ?? '?'}
           avatarIndex={profile?.avatarIndex ?? 0}
           size={72}
         />
         <View style={styles.statsRow}>
           <Stat label="Poems" value={posts.length} />
-          <Stat label="Followers" value={profile?.followersCount ?? 0} />
+          <Stat label="Followers" value={followersDisplay} />
           <Stat label="Following" value={profile?.followingCount ?? 0} />
         </View>
       </View>
 
-      <Text style={styles.displayName}>{profile?.displayName ?? user?.displayName ?? ''}</Text>
+      <Text style={styles.displayName}>{profile?.displayName ?? ''}</Text>
       <Text style={styles.username}>@{profile?.username ?? ''}</Text>
       {profile?.bio ? <Text style={styles.bio}>{profile.bio}</Text> : null}
 
       <View style={styles.actionsRow}>
-        <Pressable
-          onPress={() => nav.navigate('EditProfile')}
-          style={({ pressed }) => [styles.editBtn, pressed && { opacity: 0.7 }]}
-        >
-          <Text style={styles.editBtnText}>Edit profile</Text>
-        </Pressable>
-        <Pressable
-          onPress={() => {
-            void signOut()
-          }}
-          style={({ pressed }) => [styles.signOutBtn, pressed && { opacity: 0.7 }]}
-        >
-          <Text style={styles.signOutBtnText}>Sign out</Text>
-        </Pressable>
+        {isSelf ? (
+          <Pressable
+            onPress={() => nav.navigate('EditProfile')}
+            style={({ pressed }) => [styles.editBtn, pressed && { opacity: 0.7 }]}
+          >
+            <Text style={styles.editBtnText}>Edit profile</Text>
+          </Pressable>
+        ) : (
+          <FollowButton
+            targetUid={targetUid}
+            onChange={(nowFollowing) => setOptimisticFollowerDelta(nowFollowing ? 1 : -1)}
+          />
+        )}
       </View>
 
-      <Text style={styles.sectionLabel}>Your poems</Text>
+      <Text style={styles.sectionLabel}>Poems</Text>
     </View>
   )
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      <View style={styles.topBar}>
+        <Pressable onPress={() => nav.goBack()} hitSlop={10}>
+          <Text style={styles.back}>← Back</Text>
+        </Pressable>
+      </View>
+
       {profileLoading && !profile ? (
         <View style={styles.center}>
           <ActivityIndicator color={colors.primary} />
@@ -135,6 +148,13 @@ const Stat = ({ label, value }: { label: string; value: number }) => (
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
+  topBar: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border
+  },
+  back: { color: colors.primary, fontSize: 16 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   list: { padding: 16, paddingBottom: 40 },
 
@@ -167,20 +187,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: colors.border,
-    minHeight: 44
+    minHeight: 44,
+    justifyContent: 'center'
   },
   editBtnText: { color: colors.textPrimary, fontSize: 14, fontWeight: '600' },
-  signOutBtn: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    paddingVertical: 12,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.border,
-    minHeight: 44
-  },
-  signOutBtnText: { color: colors.accent, fontSize: 14, fontWeight: '600' },
 
   sectionLabel: {
     color: colors.textSecondary,

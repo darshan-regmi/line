@@ -29,6 +29,7 @@ export const HomeScreen = (): ReactElement => {
       <PostCard
         post={item}
         onPress={() => nav.navigate('PostDetail', { postId: item.postId })}
+        onAuthorPress={(userId) => nav.navigate('UserProfile', { userId })}
         onLikeToggled={replacePost}
       />
     ),
