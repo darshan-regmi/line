@@ -9,6 +9,7 @@ import {
   ListRenderItem,
   Platform,
   Pressable,
+  Share,
   StyleSheet,
   Text,
   TextInput,
@@ -75,6 +76,18 @@ export const PostDetailScreen = (): ReactElement => {
       setPost(post)
     } finally {
       setLikeBusy(false)
+    }
+  }
+
+  const handleShare = async () => {
+    if (!post) return
+    const handle = author?.username ? `@${author.username}` : (author?.displayName ?? 'a poet')
+    const title = post.title ? `${post.title}\n\n` : ''
+    const message = `${title}${post.content}\n\n— ${handle} on Line`
+    try {
+      await Share.share({ message, title: post.title || undefined })
+    } catch {
+      // User cancelled or share unavailable — silent
     }
   }
 
@@ -169,6 +182,9 @@ export const PostDetailScreen = (): ReactElement => {
         <Pressable onPress={() => nav.goBack()} hitSlop={10}>
           <Text style={styles.back}>← Back</Text>
         </Pressable>
+        <Pressable onPress={handleShare} hitSlop={10}>
+          <Text style={styles.share}>Share</Text>
+        </Pressable>
       </View>
 
       <KeyboardAvoidingView
@@ -226,12 +242,16 @@ export const PostDetailScreen = (): ReactElement => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border
   },
   back: { color: colors.primary, fontSize: 16 },
+  share: { color: colors.primary, fontSize: 16, fontWeight: '600' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   list: { padding: 16, paddingBottom: 80 },
 
