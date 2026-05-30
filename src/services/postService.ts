@@ -72,12 +72,18 @@ export const getPost = async (postId: string): Promise<Post | null> => {
   return postFromDoc(snap)
 }
 
-export const getFeedPage = async (cursor: QueryDocumentSnapshot | null): Promise<FeedPage> => {
-  const constraints = [
-    where('isPublished', '==', true),
-    orderBy('createdAt', 'desc'),
-    limit(PAGE_SIZE)
-  ]
+export type FeedMode = 'latest' | 'trending'
+
+export const getFeedPage = async (
+  cursor: QueryDocumentSnapshot | null,
+  mode: FeedMode = 'latest'
+): Promise<FeedPage> => {
+  const sortConstraints =
+    mode === 'trending'
+      ? [orderBy('likesCount', 'desc'), orderBy('createdAt', 'desc')]
+      : [orderBy('createdAt', 'desc')]
+
+  const constraints = [where('isPublished', '==', true), ...sortConstraints, limit(PAGE_SIZE)]
 
   const q = cursor
     ? query(collection(db, 'posts'), ...constraints, startAfter(cursor))

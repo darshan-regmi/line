@@ -1,11 +1,11 @@
 import { QueryDocumentSnapshot } from 'firebase/firestore'
 import { useCallback, useEffect, useState } from 'react'
 
-import { getFeedPage } from '../services/postService'
+import { FeedMode, getFeedPage } from '../services/postService'
 
 import { Post } from '../types'
 
-export const useFeed = () => {
+export const useFeed = (mode: FeedMode = 'latest') => {
   const [posts, setPosts] = useState<Post[]>([])
   const [cursor, setCursor] = useState<QueryDocumentSnapshot | null>(null)
   const [hasMore, setHasMore] = useState(true)
@@ -17,7 +17,7 @@ export const useFeed = () => {
     setLoading(true)
     setError(null)
     try {
-      const page = await getFeedPage(null)
+      const page = await getFeedPage(null, mode)
       setPosts(page.posts)
       setCursor(page.cursor)
       setHasMore(page.hasMore)
@@ -26,13 +26,13 @@ export const useFeed = () => {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [mode])
 
   const refresh = useCallback(async () => {
     setRefreshing(true)
     setError(null)
     try {
-      const page = await getFeedPage(null)
+      const page = await getFeedPage(null, mode)
       setPosts(page.posts)
       setCursor(page.cursor)
       setHasMore(page.hasMore)
@@ -41,19 +41,19 @@ export const useFeed = () => {
     } finally {
       setRefreshing(false)
     }
-  }, [])
+  }, [mode])
 
   const loadMore = useCallback(async () => {
     if (!hasMore || loading || refreshing || !cursor) return
     try {
-      const page = await getFeedPage(cursor)
+      const page = await getFeedPage(cursor, mode)
       setPosts((prev) => [...prev, ...page.posts])
       setCursor(page.cursor)
       setHasMore(page.hasMore)
     } catch (e: any) {
       setError(e?.message ?? 'Failed to load more')
     }
-  }, [cursor, hasMore, loading, refreshing])
+  }, [cursor, hasMore, loading, refreshing, mode])
 
   const replacePost = useCallback((updated: Post) => {
     setPosts((prev) => prev.map((p) => (p.postId === updated.postId ? updated : p)))
