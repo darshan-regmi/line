@@ -82,30 +82,35 @@ export const ExploreScreen = (): ReactElement => {
     [nav, replacePost]
   )
 
-  const header = (
-    <View style={styles.header}>
-      <Text style={styles.heading}>Explore</Text>
-      <TextInput
-        style={styles.searchInput}
-        placeholder="Search users or poems..."
-        placeholderTextColor={colors.textMuted}
-        value={searchQuery}
-        onChangeText={setSearchQuery}
-        autoCapitalize="none"
-        autoCorrect={false}
-        returnKeyType="search"
-      />
-      {!searchActive ? <Text style={styles.subhead}>Trending poems</Text> : null}
-    </View>
-  )
+  const noResults =
+    searchActive && !searching && searchUsersResult.length === 0 && searchPostsResult.length === 0
 
-  if (searchActive) {
-    const noResults = !searching && searchUsersResult.length === 0 && searchPostsResult.length === 0
+  // The header (with the TextInput) lives at a STABLE position in the tree so
+  // typing doesn't remount it — otherwise the keyboard dismisses on every
+  // keystroke.
+  return (
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <View style={styles.header}>
+        <Text style={styles.heading}>Explore</Text>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search users or poems..."
+          placeholderTextColor={colors.textMuted}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          autoCapitalize="none"
+          autoCorrect={false}
+          returnKeyType="search"
+        />
+        {!searchActive ? <Text style={styles.subhead}>Trending poems</Text> : null}
+      </View>
 
-    return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        {header}
-        <ScrollView contentContainerStyle={styles.searchScroll} keyboardShouldPersistTaps="handled">
+      {searchActive ? (
+        <ScrollView
+          contentContainerStyle={styles.searchScroll}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+        >
           {searching && searchUsersResult.length === 0 && searchPostsResult.length === 0 ? (
             <ActivityIndicator color={colors.primary} style={{ marginTop: 24 }} />
           ) : null}
@@ -149,33 +154,25 @@ export const ExploreScreen = (): ReactElement => {
 
           {noResults ? (
             <Text style={styles.empty}>
-              No matches for &quot;{trimmed}&quot;. Search only finds new poems and recently edited
-              profiles.
+              No matches for &quot;{trimmed}&quot;. Search is prefix-only and only finds docs
+              created or edited after the lowercase fields were added.
             </Text>
           ) : null}
         </ScrollView>
-      </SafeAreaView>
-    )
-  }
-
-  return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      {loading && posts.length === 0 ? (
-        <>
-          {header}
-          <View style={styles.center}>
-            <ActivityIndicator color={colors.primary} />
-          </View>
-        </>
+      ) : loading && posts.length === 0 ? (
+        <View style={styles.center}>
+          <ActivityIndicator color={colors.primary} />
+        </View>
       ) : (
         <FlatList
           data={posts}
           keyExtractor={(item) => item.postId}
           renderItem={renderTrending}
-          ListHeaderComponent={header}
           contentContainerStyle={styles.list}
           onEndReached={loadMore}
           onEndReachedThreshold={0.4}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
