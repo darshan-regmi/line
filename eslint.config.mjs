@@ -16,7 +16,7 @@ const compat = new FlatCompat({
 export default defineConfig([
   expoConfig,
   {
-    ignores: ['dist/*']
+    ignores: ['dist/*', 'scripts/**']
   },
 
   /* for lint-staged */
