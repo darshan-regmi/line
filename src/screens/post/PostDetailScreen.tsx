@@ -107,7 +107,10 @@ export const PostDetailScreen = (): ReactElement => {
         likesCount: 0,
         createdAt: null
       }
-      setComments((prev) => [newComment, ...prev])
+      // The real-time listener may have already added this comment (Firestore
+      // surfaces pending writes via the local cache). Skip the prepend if the
+      // id is already present — otherwise React warns about duplicate keys.
+      setComments((prev) => (prev.some((c) => c.commentId === id) ? prev : [newComment, ...prev]))
       setPost({ ...post, commentsCount: post.commentsCount + 1 })
       setDraft('')
     } catch (err: any) {
