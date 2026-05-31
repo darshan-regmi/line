@@ -531,4 +531,4 @@ Line is built with the belief that **poetry deserves a beautiful platform**. Eve
 
 **Made with 💚 by Darshan Regmi**
 
-_Last updated: May 2026 — Phase 1 + Phase 2 (in-app) complete. Phase 3: view counts, bookmarks, collections, moderation, user blocking, design system (DESIGN.md), responsive layout with desktop sidebar, Ionicons migration, and unique DiceBear avatars all shipped. DMs queued._
+_Last updated: May 2026 — Phase 1 + Phase 2 (in-app) complete. Phase 3 shipped: view counts, bookmarks, collections, moderation, user blocking, design system (DESIGN.md), responsive layout with desktop sidebar, Ionicons migration, DiceBear avatars, UX polish (toasts + skeletons), and 1:1 DMs. Only FCM push delivery remains (infra-blocked)._
