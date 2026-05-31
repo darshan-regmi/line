@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons'
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import React, { ReactElement, useEffect, useState } from 'react'
@@ -177,8 +178,8 @@ export const PostDetailScreen = (): ReactElement => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
-          <Pressable onPress={() => nav.goBack()} hitSlop={10}>
-            <Text style={styles.back}>← Back</Text>
+          <Pressable onPress={() => nav.goBack()} hitSlop={10} style={styles.iconBtn}>
+            <Ionicons name="chevron-back" size={26} color={colors.primary} />
           </Pressable>
         </View>
         <View style={styles.center}>
@@ -245,7 +246,7 @@ export const PostDetailScreen = (): ReactElement => {
           </Text>
         </Pressable>
         <View style={styles.action}>
-          <Text style={styles.actionIcon}>💬</Text>
+          <Ionicons name="chatbubble-outline" size={20} color={colors.textSecondary} />
           <Text style={styles.actionText}>{post.commentsCount}</Text>
         </View>
         <View style={{ flex: 1 }} />
@@ -255,7 +256,7 @@ export const PostDetailScreen = (): ReactElement => {
             hitSlop={8}
             style={({ pressed }) => [styles.action, pressed && { opacity: 0.6 }]}
           >
-            <Text style={[styles.actionIcon, { fontSize: 20 }]}>📚</Text>
+            <Ionicons name="albums-outline" size={22} color={colors.textSecondary} />
           </Pressable>
         ) : null}
         <BookmarkButton postId={post.postId} size={22} />
@@ -269,17 +270,17 @@ export const PostDetailScreen = (): ReactElement => {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={[styles.header, contentStyle]}>
-        <Pressable onPress={() => nav.goBack()} hitSlop={10}>
-          <Text style={styles.back}>← Back</Text>
+        <Pressable onPress={() => nav.goBack()} hitSlop={10} style={styles.iconBtn}>
+          <Ionicons name="chevron-back" size={26} color={colors.primary} />
         </Pressable>
         <View style={styles.headerRight}>
           {user && user.uid !== post.userId ? (
-            <Pressable onPress={openActionMenu} hitSlop={10}>
-              <Text style={styles.headerIcon}>⋯</Text>
+            <Pressable onPress={openActionMenu} hitSlop={10} style={styles.iconBtn}>
+              <Ionicons name="ellipsis-horizontal" size={22} color={colors.textSecondary} />
             </Pressable>
           ) : null}
-          <Pressable onPress={handleShare} hitSlop={10}>
-            <Text style={styles.share}>Share</Text>
+          <Pressable onPress={handleShare} hitSlop={10} style={styles.iconBtn}>
+            <Ionicons name="paper-plane-outline" size={22} color={colors.primary} />
           </Pressable>
         </View>
       </View>
@@ -380,8 +381,9 @@ const styles = StyleSheet.create({
   },
   back: { color: colors.primary, fontSize: 16 },
   share: { color: colors.primary, fontSize: 16, fontWeight: '600' },
-  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 16 },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   headerIcon: { color: colors.textSecondary, fontSize: 24, fontWeight: '700', marginTop: -6 },
+  iconBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   list: { padding: 16, paddingBottom: 80 },
 

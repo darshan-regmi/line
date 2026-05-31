@@ -1,7 +1,10 @@
+import { Ionicons } from '@expo/vector-icons'
 import React, { ReactElement, useState } from 'react'
 import { Animated, Pressable, StyleSheet, Text } from 'react-native'
 
 import { colors } from '../utils/colorScheme'
+
+const AnimatedIonicons = Animated.createAnimatedComponent(Ionicons)
 
 type Props = {
   liked: boolean
@@ -48,18 +51,12 @@ export const HeartButton = ({
       hitSlop={8}
       style={({ pressed }) => [styles.btn, pressed && { opacity: 0.6 }]}
     >
-      <Animated.Text
-        style={[
-          styles.icon,
-          {
-            fontSize: size,
-            color: liked ? colors.accent : colors.textSecondary,
-            transform: [{ scale }]
-          }
-        ]}
-      >
-        {liked ? '♥' : '♡'}
-      </Animated.Text>
+      <AnimatedIonicons
+        name={liked ? 'heart' : 'heart-outline'}
+        size={size + 4}
+        color={liked ? colors.accent : colors.textSecondary}
+        style={{ transform: [{ scale }] }}
+      />
       {showCount ? <Text style={[styles.count, liked && styles.countActive]}>{count}</Text> : null}
     </Pressable>
   )
@@ -70,9 +67,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6
-  },
-  icon: {
-    lineHeight: 22
   },
   count: {
     color: colors.textSecondary,

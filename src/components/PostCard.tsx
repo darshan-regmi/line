@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons'
 import React, { memo, ReactElement, useEffect, useState } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 
@@ -99,7 +100,7 @@ const PostCardComponent = ({
         />
 
         <View style={styles.action}>
-          <Text style={styles.actionIcon}>💬</Text>
+          <Ionicons name="chatbubble-outline" size={18} color={colors.textSecondary} />
           <Text style={styles.actionText}>{localPost.commentsCount}</Text>
         </View>
 

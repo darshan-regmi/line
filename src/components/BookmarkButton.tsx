@@ -1,5 +1,6 @@
+import { Ionicons } from '@expo/vector-icons'
 import React, { ReactElement, useState } from 'react'
-import { ActivityIndicator, Pressable, StyleSheet, Text } from 'react-native'
+import { ActivityIndicator, Pressable, StyleSheet } from 'react-native'
 
 import { useAuth } from '../context/AuthContext'
 import { useBookmarkIds } from '../hooks/useBookmarkIds'
@@ -29,7 +30,6 @@ export const BookmarkButton = ({ postId, size = 20 }: Props): ReactElement | nul
       } else {
         await addBookmark(user.uid, postId)
       }
-      // Listener will update idSet shortly; no local optimistic state needed.
     } catch {
       // best-effort
     } finally {
@@ -47,20 +47,16 @@ export const BookmarkButton = ({ postId, size = 20 }: Props): ReactElement | nul
       {busy ? (
         <ActivityIndicator color={colors.textSecondary} size="small" />
       ) : (
-        <Text
-          style={[
-            styles.icon,
-            { fontSize: size, color: bookmarked ? colors.secondary : colors.textSecondary }
-          ]}
-        >
-          {bookmarked ? '★' : '☆'}
-        </Text>
+        <Ionicons
+          name={bookmarked ? 'bookmark' : 'bookmark-outline'}
+          size={size}
+          color={bookmarked ? colors.secondary : colors.textSecondary}
+        />
       )}
     </Pressable>
   )
 }
 
 const styles = StyleSheet.create({
-  btn: { alignItems: 'center', justifyContent: 'center', minWidth: 28, minHeight: 28 },
-  icon: { lineHeight: 22 }
+  btn: { alignItems: 'center', justifyContent: 'center', minWidth: 28, minHeight: 28 }
 })

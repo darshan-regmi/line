@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons'
 import { useNavigation } from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import React, { ReactElement, useCallback } from 'react'
@@ -67,7 +68,11 @@ export const HomeScreen = (): ReactElement => {
             hitSlop={10}
             style={({ pressed }) => [styles.bellBtn, pressed && { opacity: 0.6 }]}
           >
-            <Text style={styles.bell}>🔔</Text>
+            <Ionicons
+              name={unreadCount > 0 ? 'notifications' : 'notifications-outline'}
+              size={24}
+              color={unreadCount > 0 ? colors.primary : colors.textPrimary}
+            />
             {unreadCount > 0 ? (
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
@@ -141,7 +146,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     position: 'relative'
   },
-  bell: { fontSize: 22 },
   badge: {
     position: 'absolute',
     top: 4,

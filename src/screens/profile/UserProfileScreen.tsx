@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons'
 import { RouteProp, useFocusEffect, useNavigation, useRoute } from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import React, { ReactElement, useCallback, useState } from 'react'
@@ -173,15 +174,15 @@ export const UserProfileScreen = (): ReactElement => {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={[styles.topBar, contentStyle]}>
-        <Pressable onPress={() => nav.goBack()} hitSlop={10}>
-          <Text style={styles.back}>← Back</Text>
+        <Pressable onPress={() => nav.goBack()} hitSlop={10} style={styles.iconBtn}>
+          <Ionicons name="chevron-back" size={26} color={colors.primary} />
         </Pressable>
         {!isSelf ? (
-          <Pressable onPress={openActionMenu} hitSlop={10}>
-            <Text style={styles.headerIcon}>⋯</Text>
+          <Pressable onPress={openActionMenu} hitSlop={10} style={styles.iconBtn}>
+            <Ionicons name="ellipsis-horizontal" size={22} color={colors.textSecondary} />
           </Pressable>
         ) : (
-          <View style={{ width: 24 }} />
+          <View style={{ width: 36 }} />
         )}
       </View>
 
@@ -193,7 +194,7 @@ export const UserProfileScreen = (): ReactElement => {
         <View style={styles.blockedState}>
           <Text style={styles.blockedTitle}>You blocked {profile?.displayName ?? 'this user'}</Text>
           <Text style={styles.blockedSub}>
-            Their poems and notifications are hidden from you. Tap ⋯ to unblock.
+            Their poems and notifications are hidden from you. Tap the menu to unblock.
           </Text>
         </View>
       ) : (
@@ -243,6 +244,7 @@ const styles = StyleSheet.create({
   },
   back: { color: colors.primary, fontSize: 16 },
   headerIcon: { color: colors.textSecondary, fontSize: 24, fontWeight: '700', marginTop: -6 },
+  iconBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   blockedState: {
     flex: 1,
     alignItems: 'center',

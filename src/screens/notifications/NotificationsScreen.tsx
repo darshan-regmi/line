@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons'
 import { useFocusEffect, useNavigation } from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import React, { ReactElement, useCallback } from 'react'
@@ -62,11 +63,11 @@ export const NotificationsScreen = (): ReactElement => {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={[styles.header, contentStyle]}>
-        <Pressable onPress={() => nav.goBack()} hitSlop={10}>
-          <Text style={styles.back}>← Back</Text>
+        <Pressable onPress={() => nav.goBack()} hitSlop={10} style={styles.iconBtn}>
+          <Ionicons name="chevron-back" size={26} color={colors.primary} />
         </Pressable>
         <Text style={styles.title}>Notifications</Text>
-        <View style={{ width: 60 }} />
+        <View style={{ width: 36 }} />
       </View>
 
       {loading && notifications.length === 0 ? (
@@ -105,6 +106,7 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border
   },
   back: { color: colors.primary, fontSize: 16 },
+  iconBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   title: { color: colors.textPrimary, fontSize: 17, fontWeight: '600' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   empty: {

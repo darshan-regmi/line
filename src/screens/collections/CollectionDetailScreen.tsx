@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons'
 import { RouteProp, useFocusEffect, useNavigation, useRoute } from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import React, { ReactElement, useCallback, useState } from 'react'
@@ -87,15 +88,15 @@ export const CollectionDetailScreen = (): ReactElement => {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={[styles.topBar, contentStyle]}>
-        <Pressable onPress={() => nav.goBack()} hitSlop={10}>
-          <Text style={styles.back}>← Back</Text>
+        <Pressable onPress={() => nav.goBack()} hitSlop={10} style={styles.iconBtn}>
+          <Ionicons name="chevron-back" size={26} color={colors.primary} />
         </Pressable>
         {isOwner && collection ? (
           <Pressable onPress={() => nav.navigate('EditCollection', { collectionId })} hitSlop={10}>
             <Text style={styles.edit}>Edit</Text>
           </Pressable>
         ) : (
-          <View style={{ width: 40 }} />
+          <View style={{ width: 36 }} />
         )}
       </View>
 
@@ -135,6 +136,7 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border
   },
   back: { color: colors.primary, fontSize: 16 },
+  iconBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   edit: { color: colors.primary, fontSize: 16, fontWeight: '600' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   list: { padding: 16, paddingBottom: 40 },
