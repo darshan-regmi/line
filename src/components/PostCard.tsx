@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import { useUser } from '../hooks/useUser'
 import { toggleLike } from '../services/postService'
 import { colors } from '../utils/colorScheme'
-import { formatRelativeTime, truncate } from '../utils/formatters'
+import { formatRelativeTime, pluralize, truncate } from '../utils/formatters'
 
 import { Post } from '../types'
 import { Avatar } from './Avatar'
@@ -80,6 +80,7 @@ const PostCardComponent = ({
           </Text>
           <Text style={styles.meta}>
             @{author?.username ?? '...'} · {formatRelativeTime(localPost.createdAt)}
+            {localPost.viewCount > 0 ? ` · ${pluralize(localPost.viewCount, 'view')}` : ''}
           </Text>
         </View>
       </Pressable>

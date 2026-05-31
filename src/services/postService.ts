@@ -37,6 +37,7 @@ const postFromDoc = (snap: QueryDocumentSnapshot | DocumentSnapshot): Post => {
     likes: data.likes ?? [],
     likesCount: data.likesCount ?? 0,
     commentsCount: data.commentsCount ?? 0,
+    viewCount: data.viewCount ?? 0,
     isPublished: data.isPublished ?? false,
     createdAt: data.createdAt ?? null,
     updatedAt: data.updatedAt ?? null
@@ -64,6 +65,7 @@ export const createPost = async (input: {
     likes: [],
     likesCount: 0,
     commentsCount: 0,
+    viewCount: 0,
     isPublished: input.isPublished ?? true,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp()
@@ -227,6 +229,21 @@ export const toggleLike = async (
       type: 'like',
       postId
     })
+  }
+}
+
+/**
+ * Bumps the post's view count by 1. Best-effort: failures are silent.
+ *
+ * Trade-off: no per-viewer dedup. Opening PostDetail twice from the same
+ * account counts as two views. Acceptable for an MVP read metric;
+ * production apps would dedup per session via /views/{postId}/{viewerUid}.
+ */
+export const incrementPostView = async (postId: string): Promise<void> => {
+  try {
+    await updateDoc(doc(db, 'posts', postId), { viewCount: increment(1) })
+  } catch {
+    // Non-fatal
   }
 }
 

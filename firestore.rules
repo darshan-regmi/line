@@ -110,6 +110,13 @@ service cloud.firestore {
         && changedKeys().hasOnly(['commentsCount', 'updatedAt'])
         && request.resource.data.commentsCount == resource.data.commentsCount + 1;
 
+      // Anyone signed-in can bump viewCount by exactly +1 (opening PostDetail).
+      // No dedup per viewer; trade-off documented in postService.incrementPostView.
+      // Uses `.get` so older posts created before viewCount existed still bump cleanly.
+      allow update: if isAuthed()
+        && changedKeys().hasOnly(['viewCount'])
+        && request.resource.data.viewCount == resource.data.get('viewCount', 0) + 1;
+
       // ─── Comments (subcollection) ──────────────────────────────────
       match /comments/{commentId} {
         // Anyone (even signed-out) can read comments — comments on public posts

@@ -26,10 +26,10 @@ import { usePost } from '../../hooks/usePost'
 import { useUser } from '../../hooks/useUser'
 import { MainStackParamList } from '../../navigation/MainStack'
 import { addComment, subscribeComments } from '../../services/commentService'
-import { toggleLike } from '../../services/postService'
+import { incrementPostView, toggleLike } from '../../services/postService'
 import { Comment } from '../../types'
 import { colors } from '../../utils/colorScheme'
-import { formatRelativeTime } from '../../utils/formatters'
+import { formatRelativeTime, pluralize } from '../../utils/formatters'
 
 type R = RouteProp<MainStackParamList, 'PostDetail'>
 type Nav = NativeStackNavigationProp<MainStackParamList>
@@ -59,6 +59,12 @@ export const PostDetailScreen = (): ReactElement => {
       setCommentsLoading(false)
     })
     return unsubscribe
+  }, [postId])
+
+  // Bump view count once per mount. Best-effort; failure is silent.
+  useEffect(() => {
+    if (!postId) return
+    void incrementPostView(postId)
   }, [postId])
 
   const liked = !!user && !!post && post.likes.includes(user.uid)
@@ -155,6 +161,7 @@ export const PostDetailScreen = (): ReactElement => {
           <Text style={styles.authorName}>{author?.displayName ?? 'Anonymous'}</Text>
           <Text style={styles.authorSub}>
             @{author?.username ?? '...'} · {formatRelativeTime(post.createdAt)}
+            {post.viewCount > 0 ? ` · ${pluralize(post.viewCount, 'view')}` : ''}
           </Text>
         </View>
       </Pressable>

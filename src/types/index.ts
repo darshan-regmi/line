@@ -22,6 +22,7 @@ export type Post = {
   likes: string[]
   likesCount: number
   commentsCount: number
+  viewCount: number
   isPublished: boolean
   createdAt: Timestamp | null
   updatedAt: Timestamp | null
