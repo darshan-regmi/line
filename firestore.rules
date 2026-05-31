@@ -54,6 +54,13 @@ service cloud.firestore {
         allow create, delete: if isSelf(followerUid);
       }
 
+      // Bookmarks subcollection — strictly private to the owner.
+      // The doc id is the postId; the body holds createdAt.
+      // /users/{uid}/bookmarks/{postId}
+      match /bookmarks/{postId} {
+        allow read, create, update, delete: if isSelf(userId);
+      }
+
       // Notifications subcollection — recipient-owned inbox.
       // Any signed-in user (the "actor") can drop a notification here, but
       // they can never read what's in someone else's inbox.

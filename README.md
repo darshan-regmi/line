@@ -396,10 +396,13 @@ service firebase.storage {
 - [ ] User messaging (1:1 DMs)
 - [ ] Community groups & reading circles
 
+**Curation continued** ✅
+
+- [x] Bookmarks / saved poems — strictly-private subcollection; star icon on PostCard + PostDetail; "Saved" entry from the Profile screen
+
 **Operations & growth** (not started)
 
 - [ ] Content moderation tools
-- [ ] Bookmarks / saved poems (private save list)
 - [ ] FCM push delivery (deferred from Phase 2 — needs Blaze + APNs + dev build)
 
 ---
@@ -508,4 +511,4 @@ Line is built with the belief that **poetry deserves a beautiful platform**. Eve
 
 **Made with 💚 by Darshan Regmi**
 
-_Last updated: May 2026 — Phase 1 and Phase 2 (in-app) complete. Phase 3 underway: view counts shipped; collections, DMs, moderation, bookmarks queued._
+_Last updated: May 2026 — Phase 1 and Phase 2 (in-app) complete. Phase 3 underway: view counts + bookmarks shipped; collections, DMs, moderation queued._

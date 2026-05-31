@@ -87,6 +87,12 @@ export const ProfileScreen = (): ReactElement => {
           <Text style={styles.editBtnText}>Edit profile</Text>
         </Pressable>
         <Pressable
+          onPress={() => nav.navigate('Saved')}
+          style={({ pressed }) => [styles.editBtn, pressed && { opacity: 0.7 }]}
+        >
+          <Text style={styles.editBtnText}>Saved</Text>
+        </Pressable>
+        <Pressable
           onPress={() => {
             void signOut()
           }}

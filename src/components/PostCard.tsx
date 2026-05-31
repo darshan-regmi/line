@@ -9,6 +9,7 @@ import { formatRelativeTime, pluralize, truncate } from '../utils/formatters'
 
 import { Post } from '../types'
 import { Avatar } from './Avatar'
+import { BookmarkButton } from './BookmarkButton'
 import { HeartButton } from './HeartButton'
 
 type Props = {
@@ -101,6 +102,9 @@ const PostCardComponent = ({
           <Text style={styles.actionIcon}>💬</Text>
           <Text style={styles.actionText}>{localPost.commentsCount}</Text>
         </View>
+
+        <View style={styles.spacer} />
+        <BookmarkButton postId={localPost.postId} size={20} />
       </View>
     </Pressable>
   )
@@ -148,6 +152,7 @@ const styles = StyleSheet.create({
   },
   actions: {
     flexDirection: 'row',
+    alignItems: 'center',
     marginTop: 14,
     gap: 20
   },
@@ -155,6 +160,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6
+  },
+  spacer: {
+    flex: 1
   },
   actionIcon: {
     color: colors.textSecondary,

@@ -18,6 +18,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { Avatar } from '../../components/Avatar'
+import { BookmarkButton } from '../../components/BookmarkButton'
 import { CommentItem } from '../../components/CommentItem'
 import { HeartButton } from '../../components/HeartButton'
 import { LikesModal } from '../../components/LikesModal'
@@ -192,6 +193,8 @@ export const PostDetailScreen = (): ReactElement => {
           <Text style={styles.actionIcon}>💬</Text>
           <Text style={styles.actionText}>{post.commentsCount}</Text>
         </View>
+        <View style={{ flex: 1 }} />
+        <BookmarkButton postId={post.postId} size={22} />
       </View>
 
       <View style={styles.divider} />
