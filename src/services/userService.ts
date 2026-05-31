@@ -32,6 +32,46 @@ const sanitizeUsername = (raw: string): string =>
     .replace(/[^a-z0-9_.]/g, '')
     .slice(0, 24) || 'poet'
 
+/**
+ * Pure format check (no network). Returns null on success or a human-readable
+ * error string on failure.
+ */
+export const validateUsernameFormat = (raw: string): string | null => {
+  const trimmed = raw.trim().toLowerCase()
+  if (trimmed.length < 3) return 'Username must be at least 3 characters.'
+  if (trimmed.length > 24) return 'Username must be 24 characters or fewer.'
+  if (!/^[a-z0-9_.]+$/.test(trimmed)) {
+    return 'Use lowercase letters, numbers, dots or underscores.'
+  }
+  return null
+}
+
+/**
+ * Reads `/usernames/{usernameLower}` to check whether the username is free.
+ * Caller must be signed-in (rules require it).
+ */
+export const isUsernameAvailable = async (raw: string): Promise<boolean> => {
+  const usernameLower = raw.trim().toLowerCase()
+  if (validateUsernameFormat(usernameLower) !== null) return false
+  const snap = await getDoc(doc(db, 'usernames', usernameLower))
+  return !snap.exists()
+}
+
+const claimUsername = async (uid: string, usernameLower: string): Promise<void> => {
+  await setDoc(doc(db, 'usernames', usernameLower), {
+    uid,
+    claimedAt: serverTimestamp()
+  })
+}
+
+export const releaseUsername = async (usernameLower: string): Promise<void> => {
+  try {
+    await deleteDoc(doc(db, 'usernames', usernameLower))
+  } catch {
+    /* best-effort */
+  }
+}
+
 export const ensureUserDoc = async (firebaseUser: FirebaseUser): Promise<UserProfile> => {
   const existing = await getUser(firebaseUser.uid)
   if (existing) return existing
@@ -43,8 +83,18 @@ export const ensureUserDoc = async (firebaseUser: FirebaseUser): Promise<UserPro
   const emailPrefix = firebaseUser.email?.split('@')[0] ?? ''
   const fallbackUsername = sanitizeUsername(emailPrefix) + firebaseUser.uid.slice(-4).toLowerCase()
 
-  const username = signup?.username ?? fallbackUsername
+  const desired = signup?.username?.trim().toLowerCase() || fallbackUsername
   const displayName = signup?.displayName ?? firebaseUser.displayName ?? 'Poet'
+
+  // Try to claim the desired username; if it's already taken, fall back to
+  // `<sanitized-email-prefix><uid-suffix>` which is effectively unique per uid.
+  let username = desired
+  try {
+    await claimUsername(firebaseUser.uid, desired)
+  } catch {
+    username = fallbackUsername
+    await claimUsername(firebaseUser.uid, fallbackUsername)
+  }
 
   await setDoc(doc(db, 'users', firebaseUser.uid), {
     uid: firebaseUser.uid,

@@ -99,6 +99,29 @@ service cloud.firestore {
       }
     }
 
+    // ─── Usernames ───────────────────────────────────────────────────
+    // Lowercased username claims. Doc id is the lowercased username.
+    // Existence of the doc means the username is taken. Body holds
+    // { uid, claimedAt } so we can release the claim during account
+    // deletion or username changes.
+    match /usernames/{usernameLower} {
+      // Anyone (including signed-out signup forms) can probe a single doc
+      // to check availability. Usernames are public on profiles/posts already.
+      allow get: if true;
+      // List is intentionally closed — no one needs to enumerate claims
+      allow list: if false;
+
+      // Only the claiming user can create the doc, and uid must match
+      allow create: if isAuthed()
+        && request.resource.data.uid == request.auth.uid;
+
+      // Claims are immutable; rename via delete + re-create
+      allow update: if false;
+
+      // Only the owner of a claim can release it
+      allow delete: if isAuthed() && resource.data.uid == request.auth.uid;
+    }
+
     // ─── Posts ───────────────────────────────────────────────────────
     match /posts/{postId} {
       // Posts are public to read (matches the social-feed model)

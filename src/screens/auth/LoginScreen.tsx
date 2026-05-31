@@ -25,7 +25,11 @@ import {
 
 import { auth } from '../../config/firebase'
 import { AuthStackParamList } from '../../navigation/AuthStack'
-import { setPendingSignup } from '../../services/userService'
+import {
+  isUsernameAvailable,
+  setPendingSignup,
+  validateUsernameFormat
+} from '../../services/userService'
 import { colors } from '../../utils/colorScheme'
 import * as Google from 'expo-auth-session/providers/google'
 
@@ -44,12 +48,38 @@ export const AuthScreen = () => {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [flipAnim] = useState(new Animated.Value(0))
+  const [usernameStatus, setUsernameStatus] = useState<
+    'idle' | 'checking' | 'available' | 'taken' | 'invalid'
+  >('idle')
 
   const [, googleResponse, promptGoogle] = Google.useAuthRequest({
     iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
     androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
     webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID
   })
+
+  // Debounced live username availability check. Only runs on the signup card.
+  useEffect(() => {
+    if (isLogin) return
+    const trimmed = username.trim()
+    if (!trimmed) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setUsernameStatus('idle')
+      return
+    }
+    const formatError = validateUsernameFormat(trimmed)
+    if (formatError) {
+      setUsernameStatus('invalid')
+      return
+    }
+    setUsernameStatus('checking')
+    const handle = setTimeout(() => {
+      void isUsernameAvailable(trimmed)
+        .then((free) => setUsernameStatus(free ? 'available' : 'taken'))
+        .catch(() => setUsernameStatus('idle'))
+    }, 400)
+    return () => clearTimeout(handle)
+  }, [username, isLogin])
 
   useEffect(() => {
     if (googleResponse?.type !== 'success') return
@@ -107,8 +137,14 @@ export const AuthScreen = () => {
         return
       }
 
-      if (username.length < 3) {
-        setError('Username must be at least 3 characters.')
+      const formatError = validateUsernameFormat(username)
+      if (formatError) {
+        setError(formatError)
+        return
+      }
+
+      if (usernameStatus === 'taken') {
+        setError('Username is taken. Try another.')
         return
       }
     }
@@ -278,7 +314,19 @@ export const AuthScreen = () => {
             />
 
             <TextInput
-              style={[styles.input, { borderColor: username ? colors.primary : colors.border }]}
+              style={[
+                styles.input,
+                {
+                  borderColor:
+                    usernameStatus === 'available'
+                      ? colors.primary
+                      : usernameStatus === 'taken' || usernameStatus === 'invalid'
+                        ? colors.accent
+                        : username
+                          ? colors.primary
+                          : colors.border
+                }
+              ]}
               placeholder="Username"
               placeholderTextColor={colors.textMuted}
               autoCapitalize="none"
@@ -286,6 +334,19 @@ export const AuthScreen = () => {
               onChangeText={setUsername}
               editable={!submitting}
             />
+            {username.length > 0 ? (
+              <Text style={styles.usernameHint}>
+                {usernameStatus === 'checking'
+                  ? 'Checking…'
+                  : usernameStatus === 'available'
+                    ? 'Available'
+                    : usernameStatus === 'taken'
+                      ? 'Already taken'
+                      : usernameStatus === 'invalid'
+                        ? 'Use lowercase letters, numbers, dot or underscore (3–24)'
+                        : ' '}
+              </Text>
+            ) : null}
 
             <TextInput
               style={[styles.input, { borderColor: email ? colors.primary : colors.border }]}
@@ -513,5 +574,12 @@ const styles = StyleSheet.create({
   legalLink: {
     color: colors.primary,
     fontWeight: '600'
+  },
+  usernameHint: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    marginTop: -8,
+    marginBottom: 12,
+    paddingHorizontal: 4
   }
 })
