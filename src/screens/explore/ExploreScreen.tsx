@@ -16,11 +16,14 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { Avatar } from '../../components/Avatar'
+import { FollowButton } from '../../components/FollowButton'
 import { PostCard } from '../../components/PostCard'
+import { useAuth } from '../../context/AuthContext'
 import { useFeed } from '../../hooks/useFeed'
+import { useFollowingUids } from '../../hooks/useFollowingUids'
 import { MainStackParamList } from '../../navigation/MainStack'
 import { searchPosts } from '../../services/postService'
-import { searchUsers } from '../../services/userService'
+import { getSuggestedUsers, searchUsers } from '../../services/userService'
 import { Post, UserProfile } from '../../types'
 import { colors } from '../../utils/colorScheme'
 
@@ -33,13 +36,43 @@ export const ExploreScreen = (): ReactElement => {
   const { posts, loading, refreshing, hasMore, error, refresh, loadMore, replacePost } =
     useFeed('trending')
 
+  const { user: currentUser } = useAuth()
+  const { uids: followedUids } = useFollowingUids()
+
   const [searchQuery, setSearchQuery] = useState('')
   const [searchUsersResult, setSearchUsersResult] = useState<UserProfile[]>([])
   const [searchPostsResult, setSearchPostsResult] = useState<Post[]>([])
   const [searching, setSearching] = useState(false)
 
+  const [suggested, setSuggested] = useState<UserProfile[]>([])
+  const [suggestedLoading, setSuggestedLoading] = useState(false)
+
   const trimmed = searchQuery.trim()
   const searchActive = trimmed.length > 0
+
+  // Refresh the suggested-users list whenever the current user or their
+  // follows change. Excludes self + already-followed.
+  const currentUid = currentUser?.uid
+  const followingKey = followedUids.slice().sort().join(',')
+  useEffect(() => {
+    if (!currentUid) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSuggested([])
+      return
+    }
+    let cancelled = false
+    setSuggestedLoading(true)
+    getSuggestedUsers(currentUid, followingKey ? followingKey.split(',') : [], 5)
+      .then((result) => {
+        if (!cancelled) setSuggested(result)
+      })
+      .finally(() => {
+        if (!cancelled) setSuggestedLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [currentUid, followingKey])
 
   // Debounced search
   useEffect(() => {
@@ -173,6 +206,37 @@ export const ExploreScreen = (): ReactElement => {
           onEndReachedThreshold={0.4}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
+          ListHeaderComponent={
+            suggested.length > 0 || suggestedLoading ? (
+              <View style={styles.section}>
+                <Text style={styles.sectionLabel}>Suggested for you</Text>
+                {suggestedLoading && suggested.length === 0 ? (
+                  <ActivityIndicator color={colors.textSecondary} style={{ marginTop: 12 }} />
+                ) : (
+                  suggested.map((u) => (
+                    <View key={u.uid} style={styles.userRow}>
+                      <Pressable
+                        onPress={() => nav.navigate('UserProfile', { userId: u.uid })}
+                        style={({ pressed }) => [styles.userTapTarget, pressed && { opacity: 0.7 }]}
+                      >
+                        <Avatar name={u.displayName} avatarIndex={u.avatarIndex} size={40} />
+                        <View style={styles.userText}>
+                          <Text style={styles.userName} numberOfLines={1}>
+                            {u.displayName}
+                          </Text>
+                          <Text style={styles.userHandle} numberOfLines={1}>
+                            @{u.username}
+                          </Text>
+                        </View>
+                      </Pressable>
+                      <FollowButton targetUid={u.uid} />
+                    </View>
+                  ))
+                )}
+                <Text style={styles.sectionLabel}>Trending</Text>
+              </View>
+            ) : null
+          }
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -238,6 +302,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 10,
     gap: 12
+  },
+  userTapTarget: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1
   },
   userText: { flex: 1 },
   userName: { color: colors.textPrimary, fontSize: 15, fontWeight: '600' },

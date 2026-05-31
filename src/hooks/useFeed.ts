@@ -16,7 +16,7 @@ import { Post } from '../types'
  * `posts` merges the live first page with any paginated extras, deduped by
  * postId so a post that climbs back into the first page doesn't double-render.
  */
-export const useFeed = (mode: FeedMode = 'latest') => {
+export const useFeed = (mode: FeedMode = 'latest', followedUids: string[] = []) => {
   const [firstPage, setFirstPage] = useState<Post[]>([])
   const [firstPageLastDoc, setFirstPageLastDoc] = useState<QueryDocumentSnapshot | null>(null)
   const [extras, setExtras] = useState<Post[]>([])
@@ -26,11 +26,20 @@ export const useFeed = (mode: FeedMode = 'latest') => {
   const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // Stable string key for the followed uids set so the subscription only
+  // re-runs when the set actually changes, not on every render's new array ref.
+  const uidsKey = useMemo(() => followedUids.slice().sort().join(','), [followedUids])
+
   // Real-time subscription to the first page
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true)
     setError(null)
+    setExtras([])
+    setExtrasCursor(null)
+    setHasMore(true)
+
+    const subscriptionUids = uidsKey ? uidsKey.split(',') : []
 
     const unsubscribe = subscribeFeedFirstPage(
       mode,
@@ -42,11 +51,12 @@ export const useFeed = (mode: FeedMode = 'latest') => {
       (err) => {
         setError(err.message)
         setLoading(false)
-      }
+      },
+      subscriptionUids
     )
 
     return unsubscribe
-  }, [mode])
+  }, [mode, uidsKey])
 
   const posts = useMemo<Post[]>(() => {
     const seen = new Set<string>()
@@ -77,14 +87,15 @@ export const useFeed = (mode: FeedMode = 'latest') => {
     if (!cursor) return
 
     try {
-      const page = await getFeedPage(cursor, mode)
+      const pageUids = uidsKey ? uidsKey.split(',') : []
+      const page = await getFeedPage(cursor, mode, pageUids)
       setExtras((prev) => [...prev, ...page.posts])
       setExtrasCursor(page.cursor)
       setHasMore(page.hasMore)
     } catch (e: any) {
       setError(e?.message ?? 'Failed to load more')
     }
-  }, [extrasCursor, firstPageLastDoc, hasMore, loading, refreshing, mode])
+  }, [extrasCursor, firstPageLastDoc, hasMore, loading, refreshing, mode, uidsKey])
 
   // Optimistic replacement — patches both layers so the change is instant.
   // The first-page listener will overwrite firstPage shortly after with the

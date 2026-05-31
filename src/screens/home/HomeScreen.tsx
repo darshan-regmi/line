@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { PostCard } from '../../components/PostCard'
 import { useFeed } from '../../hooks/useFeed'
+import { useFollowingUids } from '../../hooks/useFollowingUids'
 import { MainStackParamList } from '../../navigation/MainStack'
 import { Post } from '../../types'
 import { colors } from '../../utils/colorScheme'
@@ -22,7 +23,17 @@ type Nav = NativeStackNavigationProp<MainStackParamList>
 
 export const HomeScreen = (): ReactElement => {
   const nav = useNavigation<Nav>()
-  const { posts, loading, refreshing, hasMore, error, refresh, loadMore, replacePost } = useFeed()
+
+  // Personalize the feed: when the user follows people we show posts from
+  // those accounts. With zero follows we fall back to the global latest
+  // feed so the home tab isn't empty for new users.
+  const { uids: followedUids, loading: followsLoading } = useFollowingUids()
+  const personalized = followedUids.length > 0
+
+  const { posts, loading, refreshing, hasMore, error, refresh, loadMore, replacePost } = useFeed(
+    personalized ? 'following' : 'latest',
+    personalized ? followedUids : []
+  )
 
   const renderItem: ListRenderItem<Post> = useCallback(
     ({ item }) => (
@@ -40,9 +51,12 @@ export const HomeScreen = (): ReactElement => {
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.heading}>Line</Text>
+        <Text style={styles.subhead}>
+          {personalized ? 'From poets you follow' : 'Latest poems'}
+        </Text>
       </View>
 
-      {loading && posts.length === 0 ? (
+      {(loading || followsLoading) && posts.length === 0 ? (
         <View style={styles.center}>
           <ActivityIndicator color={colors.primary} />
         </View>
@@ -64,9 +78,14 @@ export const HomeScreen = (): ReactElement => {
           }
           ListEmptyComponent={
             <View style={styles.empty}>
-              <Text style={styles.emptyTitle}>No poems yet</Text>
+              <Text style={styles.emptyTitle}>
+                {personalized ? 'Quiet here for now' : 'No poems yet'}
+              </Text>
               <Text style={styles.emptySub}>
-                {error ?? 'Tap the + tab to share the first verse.'}
+                {error ??
+                  (personalized
+                    ? 'Nobody you follow has posted yet. Try Explore to find more poets.'
+                    : 'Tap the + tab to share the first verse.')}
               </Text>
             </View>
           }
@@ -92,6 +111,7 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border
   },
   heading: { color: colors.textPrimary, fontSize: 26, fontWeight: '700' },
+  subhead: { color: colors.textSecondary, fontSize: 13, marginTop: 2 },
   list: { padding: 16, paddingBottom: 32 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   empty: {

@@ -76,7 +76,10 @@ export const getPost = async (postId: string): Promise<Post | null> => {
   return postFromDoc(snap)
 }
 
-export type FeedMode = 'latest' | 'trending'
+export type FeedMode = 'latest' | 'trending' | 'following'
+
+// Firestore caps the `in` operator at 30 values per query
+const IN_CLAUSE_MAX = 30
 
 const sortConstraintsFor = (mode: FeedMode) =>
   mode === 'trending'
@@ -85,20 +88,35 @@ const sortConstraintsFor = (mode: FeedMode) =>
 
 export const getFeedPage = async (
   cursor: QueryDocumentSnapshot | null,
-  mode: FeedMode = 'latest'
+  mode: FeedMode = 'latest',
+  followedUids: string[] = []
 ): Promise<FeedPage> => {
-  const constraints = [
-    where('isPublished', '==', true),
-    ...sortConstraintsFor(mode),
-    limit(PAGE_SIZE)
-  ]
+  // 'following' with no follows returns an empty page; caller should fall
+  // back to a different mode if it wants any content.
+  if (mode === 'following' && followedUids.length === 0) {
+    return { posts: [], cursor: null, hasMore: false }
+  }
+
+  const constraints =
+    mode === 'following'
+      ? [
+          where('userId', 'in', followedUids.slice(0, IN_CLAUSE_MAX)),
+          orderBy('createdAt', 'desc'),
+          limit(PAGE_SIZE)
+        ]
+      : [where('isPublished', '==', true), ...sortConstraintsFor(mode), limit(PAGE_SIZE)]
 
   const q = cursor
     ? query(collection(db, 'posts'), ...constraints, startAfter(cursor))
     : query(collection(db, 'posts'), ...constraints)
 
   const snap = await getDocs(q)
-  const posts = snap.docs.map(postFromDoc)
+  // For 'following' mode we filter unpublished drafts client-side to avoid
+  // needing a new composite index on (userId, isPublished, createdAt).
+  const posts =
+    mode === 'following'
+      ? snap.docs.map(postFromDoc).filter((p) => p.isPublished)
+      : snap.docs.map(postFromDoc)
   const nextCursor = snap.docs.length > 0 ? snap.docs[snap.docs.length - 1]! : null
 
   return {
@@ -112,23 +130,41 @@ export const getFeedPage = async (
  * Live subscription to the first page of the feed.
  * The callback fires immediately and on any subsequent change.
  * Returns an unsubscribe function.
+ *
+ * For mode === 'following', pass `followedUids` (capped at 30 by Firestore's
+ * in-clause limit). With no follows the callback emits empty immediately.
  */
 export const subscribeFeedFirstPage = (
   mode: FeedMode,
   onUpdate: (posts: Post[], lastDoc: QueryDocumentSnapshot | null) => void,
-  onError?: (err: FirestoreError) => void
+  onError?: (err: FirestoreError) => void,
+  followedUids: string[] = []
 ): (() => void) => {
-  const q = query(
-    collection(db, 'posts'),
-    where('isPublished', '==', true),
-    ...sortConstraintsFor(mode),
-    limit(PAGE_SIZE)
-  )
+  if (mode === 'following' && followedUids.length === 0) {
+    onUpdate([], null)
+    return () => {
+      /* no-op */
+    }
+  }
+
+  const constraints =
+    mode === 'following'
+      ? [
+          where('userId', 'in', followedUids.slice(0, IN_CLAUSE_MAX)),
+          orderBy('createdAt', 'desc'),
+          limit(PAGE_SIZE)
+        ]
+      : [where('isPublished', '==', true), ...sortConstraintsFor(mode), limit(PAGE_SIZE)]
+
+  const q = query(collection(db, 'posts'), ...constraints)
 
   return onSnapshot(
     q,
     (snap) => {
-      const posts = snap.docs.map(postFromDoc)
+      const posts =
+        mode === 'following'
+          ? snap.docs.map(postFromDoc).filter((p) => p.isPublished)
+          : snap.docs.map(postFromDoc)
       const lastDoc = snap.docs.length > 0 ? snap.docs[snap.docs.length - 1]! : null
       onUpdate(posts, lastDoc)
     },

@@ -157,6 +157,37 @@ const userFromQueryDoc = (snap: { id: string; data: () => any }): UserProfile =>
 }
 
 /**
+ * Returns the uids the current user is following. Reads /users/{uid}/following.
+ */
+export const getFollowingUids = async (uid: string): Promise<string[]> => {
+  const snap = await getDocs(collection(db, 'users', uid, 'following'))
+  return snap.docs.map((d) => d.id)
+}
+
+/**
+ * Suggested accounts to follow: top users by followersCount, excluding
+ * the current user and anyone already followed. Over-fetches to allow
+ * client-side filtering, then trims to `max`.
+ */
+export const getSuggestedUsers = async (
+  currentUid: string,
+  excludeUids: string[],
+  max = 5
+): Promise<UserProfile[]> => {
+  const exclude = new Set([currentUid, ...excludeUids])
+  const q = query(
+    collection(db, 'users'),
+    orderBy('followersCount', 'desc'),
+    limit(max + exclude.size + 1)
+  )
+  const snap = await getDocs(q)
+  return snap.docs
+    .map(userFromQueryDoc)
+    .filter((u) => !exclude.has(u.uid))
+    .slice(0, max)
+}
+
+/**
  * Prefix-match users by lowercased username. Existing docs without
  * `usernameLower` won't appear (no backfill performed).
  */
