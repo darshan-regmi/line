@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons'
 import { useNavigation } from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
-import React, { ReactElement, useCallback } from 'react'
+import React, { ReactElement, useCallback, useEffect, useState } from 'react'
 import {
   ActivityIndicator,
   FlatList,
@@ -21,6 +21,7 @@ import { useFollowingUids } from '../../hooks/useFollowingUids'
 import { useNotifications } from '../../hooks/useNotifications'
 import { useThreads } from '../../hooks/useThreads'
 import { MainStackParamList } from '../../navigation/MainStack'
+import { getFeedPage } from '../../services/postService'
 import { Post } from '../../types'
 import { colors } from '../../utils/colorScheme'
 import { useContentStyle } from '../../utils/responsive'
@@ -43,6 +44,29 @@ export const HomeScreen = (): ReactElement => {
     personalized ? 'following' : 'latest',
     personalized ? followedUids : []
   )
+
+  // When the personalised feed is empty we load a handful of trending posts
+  // as a one-shot fallback so the home tab still has something to read.
+  const [suggested, setSuggested] = useState<Post[]>([])
+  const showEmptyState = personalized && !loading && posts.length === 0
+  useEffect(() => {
+    if (!showEmptyState) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSuggested([])
+      return
+    }
+    let cancelled = false
+    getFeedPage(null, 'trending')
+      .then((page) => {
+        if (!cancelled) setSuggested(page.posts)
+      })
+      .catch(() => {
+        /* best-effort */
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [showEmptyState])
 
   const renderItem: ListRenderItem<Post> = useCallback(
     ({ item }) => (
@@ -124,16 +148,32 @@ export const HomeScreen = (): ReactElement => {
             />
           }
           ListEmptyComponent={
-            <View style={styles.empty}>
-              <Text style={styles.emptyTitle}>
-                {personalized ? 'Quiet here for now' : 'No poems yet'}
-              </Text>
-              <Text style={styles.emptySub}>
-                {error ??
-                  (personalized
-                    ? 'Nobody you follow has posted yet. Try Explore to find more poets.'
-                    : 'Tap the + tab to share the first verse.')}
-              </Text>
+            <View>
+              <View style={styles.empty}>
+                <Text style={styles.emptyTitle}>
+                  {personalized ? 'Quiet here for now' : 'No poems yet'}
+                </Text>
+                <Text style={styles.emptySub}>
+                  {error ??
+                    (personalized
+                      ? 'Nobody you follow has posted yet. Try Explore to find more poets.'
+                      : 'Tap the + tab to share the first verse.')}
+                </Text>
+              </View>
+              {personalized && suggested.length > 0 ? (
+                <View style={styles.suggestedSection}>
+                  <Text style={styles.suggestedLabel}>Suggested poems</Text>
+                  {suggested.map((p) => (
+                    <PostCard
+                      key={p.postId}
+                      post={p}
+                      onPress={() => nav.navigate('PostDetail', { postId: p.postId })}
+                      onAuthorPress={(userId) => nav.navigate('UserProfile', { userId })}
+                      onLikeToggled={replacePost}
+                    />
+                  ))}
+                </View>
+              ) : null}
             </View>
           }
           ListFooterComponent={
@@ -185,10 +225,20 @@ const styles = StyleSheet.create({
   empty: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 80,
+    paddingVertical: 60,
     paddingHorizontal: 32
   },
   emptyTitle: { color: colors.textPrimary, fontSize: 18, fontWeight: '600', marginBottom: 6 },
   emptySub: { color: colors.textSecondary, fontSize: 14, textAlign: 'center' },
+  suggestedSection: { paddingTop: 12 },
+  suggestedLabel: {
+    color: colors.textSecondary,
+    fontSize: 13,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 10,
+    paddingHorizontal: 4
+  },
   footer: { paddingVertical: 16 }
 })
