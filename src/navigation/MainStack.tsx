@@ -1,6 +1,7 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import React, { ReactElement } from 'react'
 
+import { NotificationsScreen } from '../screens/notifications/NotificationsScreen'
 import { PostDetailScreen } from '../screens/post/PostDetailScreen'
 import { EditProfileScreen } from '../screens/profile/EditProfileScreen'
 import { UserProfileScreen } from '../screens/profile/UserProfileScreen'
@@ -12,6 +13,7 @@ export type MainStackParamList = {
   PostDetail: { postId: string }
   UserProfile: { userId: string }
   EditProfile: undefined
+  Notifications: undefined
 }
 
 const Stack = createNativeStackNavigator<MainStackParamList>()
@@ -21,6 +23,7 @@ export const MainStack = (): ReactElement => (
     <Stack.Screen name="Tabs" component={MainTabs} />
     <Stack.Screen name="PostDetail" component={PostDetailScreen} />
     <Stack.Screen name="UserProfile" component={UserProfileScreen} />
+    <Stack.Screen name="Notifications" component={NotificationsScreen} />
     <Stack.Screen
       name="EditProfile"
       component={EditProfileScreen}

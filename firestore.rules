@@ -53,6 +53,36 @@ service cloud.firestore {
         allow read: if isAuthed();
         allow create, delete: if isSelf(followerUid);
       }
+
+      // Notifications subcollection — recipient-owned inbox.
+      // Any signed-in user (the "actor") can drop a notification here, but
+      // they can never read what's in someone else's inbox.
+      // /users/{recipient}/notifications/{notifId}
+      match /notifications/{notifId} {
+        // Only the recipient can read their own inbox
+        allow read: if isSelf(userId);
+
+        // Recipient can mark a notification read (toggling the `read` flag),
+        // but not modify any other field.
+        allow update: if isSelf(userId)
+          && changedKeys().hasOnly(['read']);
+
+        // Recipient can delete their own notifications
+        allow delete: if isSelf(userId);
+
+        // Anyone authed can drop a notification, with strict constraints:
+        // - actorUid must be the writer (no impersonation)
+        // - recipientUid must match the path
+        // - cannot self-notify
+        // - read must start false
+        // - type must be one of the three known kinds
+        allow create: if isAuthed()
+          && request.resource.data.actorUid == request.auth.uid
+          && request.resource.data.recipientUid == userId
+          && request.resource.data.actorUid != request.resource.data.recipientUid
+          && request.resource.data.read == false
+          && request.resource.data.type in ['like', 'comment', 'follow'];
+      }
     }
 
     // ─── Posts ───────────────────────────────────────────────────────

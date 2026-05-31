@@ -18,6 +18,7 @@ import {
 import { db } from '../config/firebase'
 
 import { UserProfile } from '../types'
+import { createNotification } from './notificationService'
 
 let pendingSignup: { username?: string; displayName?: string } | null = null
 
@@ -112,6 +113,13 @@ export const followUser = async (currentUid: string, targetUid: string): Promise
 
   await updateDoc(doc(db, 'users', currentUid), { followingCount: increment(1) })
   await updateDoc(doc(db, 'users', targetUid), { followersCount: increment(1) })
+
+  // Best-effort notification to the followed user
+  void createNotification({
+    recipientUid: targetUid,
+    actorUid: currentUid,
+    type: 'follow'
+  })
 }
 
 export const unfollowUser = async (currentUid: string, targetUid: string): Promise<void> => {

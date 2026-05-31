@@ -19,6 +19,7 @@ import {
 import { db } from '../config/firebase'
 
 import { Comment } from '../types'
+import { createNotification } from './notificationService'
 
 const commentFromDoc = (snap: QueryDocumentSnapshot): Comment => {
   const data = snap.data()
@@ -35,7 +36,8 @@ const commentFromDoc = (snap: QueryDocumentSnapshot): Comment => {
 export const addComment = async (
   postId: string,
   userId: string,
-  content: string
+  content: string,
+  postAuthorUid?: string
 ): Promise<string> => {
   const ref = await addDoc(collection(db, 'posts', postId, 'comments'), {
     userId,
@@ -49,6 +51,17 @@ export const addComment = async (
     commentsCount: increment(1),
     updatedAt: serverTimestamp()
   })
+
+  // Best-effort notification to the post author
+  if (postAuthorUid) {
+    void createNotification({
+      recipientUid: postAuthorUid,
+      actorUid: userId,
+      type: 'comment',
+      postId,
+      commentId: ref.id
+    })
+  }
 
   return ref.id
 }

@@ -23,6 +23,7 @@ import {
 import { db } from '../config/firebase'
 
 import { Post } from '../types'
+import { createNotification } from './notificationService'
 
 const PAGE_SIZE = 10
 
@@ -208,13 +209,25 @@ export const searchPosts = async (prefix: string, max = 10): Promise<Post[]> => 
 export const toggleLike = async (
   postId: string,
   userId: string,
-  alreadyLiked: boolean
+  alreadyLiked: boolean,
+  postAuthorUid?: string
 ): Promise<void> => {
   await updateDoc(doc(db, 'posts', postId), {
     likes: alreadyLiked ? arrayRemove(userId) : arrayUnion(userId),
     likesCount: increment(alreadyLiked ? -1 : 1),
     updatedAt: serverTimestamp()
   })
+
+  // Drop a notification on toggle-on (not on unlike) when liking
+  // someone else's post. Best-effort — never blocks the like itself.
+  if (!alreadyLiked && postAuthorUid) {
+    void createNotification({
+      recipientUid: postAuthorUid,
+      actorUid: userId,
+      type: 'like',
+      postId
+    })
+  }
 }
 
 export const deletePost = async (postId: string): Promise<void> => {

@@ -53,7 +53,7 @@ const PostCardComponent = ({
     setLocalPost(next)
     setBusy(true)
     try {
-      await toggleLike(localPost.postId, currentUser.uid, liked)
+      await toggleLike(localPost.postId, currentUser.uid, liked, localPost.userId)
       onLikeToggled?.(next)
     } catch {
       setLocalPost(localPost)

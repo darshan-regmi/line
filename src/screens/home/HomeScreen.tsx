@@ -5,6 +5,7 @@ import {
   ActivityIndicator,
   FlatList,
   ListRenderItem,
+  Pressable,
   RefreshControl,
   StyleSheet,
   Text,
@@ -15,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { PostCard } from '../../components/PostCard'
 import { useFeed } from '../../hooks/useFeed'
 import { useFollowingUids } from '../../hooks/useFollowingUids'
+import { useNotifications } from '../../hooks/useNotifications'
 import { MainStackParamList } from '../../navigation/MainStack'
 import { Post } from '../../types'
 import { colors } from '../../utils/colorScheme'
@@ -29,6 +31,7 @@ export const HomeScreen = (): ReactElement => {
   // feed so the home tab isn't empty for new users.
   const { uids: followedUids, loading: followsLoading } = useFollowingUids()
   const personalized = followedUids.length > 0
+  const { unreadCount } = useNotifications()
 
   const { posts, loading, refreshing, hasMore, error, refresh, loadMore, replacePost } = useFeed(
     personalized ? 'following' : 'latest',
@@ -50,10 +53,26 @@ export const HomeScreen = (): ReactElement => {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.heading}>Line</Text>
-        <Text style={styles.subhead}>
-          {personalized ? 'From poets you follow' : 'Latest poems'}
-        </Text>
+        <View style={styles.headerRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.heading}>Line</Text>
+            <Text style={styles.subhead}>
+              {personalized ? 'From poets you follow' : 'Latest poems'}
+            </Text>
+          </View>
+          <Pressable
+            onPress={() => nav.navigate('Notifications')}
+            hitSlop={10}
+            style={({ pressed }) => [styles.bellBtn, pressed && { opacity: 0.6 }]}
+          >
+            <Text style={styles.bell}>🔔</Text>
+            {unreadCount > 0 ? (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+              </View>
+            ) : null}
+          </Pressable>
+        </View>
       </View>
 
       {(loading || followsLoading) && posts.length === 0 ? (
@@ -110,8 +129,30 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border
   },
+  headerRow: { flexDirection: 'row', alignItems: 'center' },
   heading: { color: colors.textPrimary, fontSize: 26, fontWeight: '700' },
   subhead: { color: colors.textSecondary, fontSize: 13, marginTop: 2 },
+  bellBtn: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative'
+  },
+  bell: { fontSize: 22 },
+  badge: {
+    position: 'absolute',
+    top: 4,
+    right: 2,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: colors.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4
+  },
+  badgeText: { color: colors.textPrimary, fontSize: 10, fontWeight: '700' },
   list: { padding: 16, paddingBottom: 32 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   empty: {

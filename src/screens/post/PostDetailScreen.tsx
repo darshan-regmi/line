@@ -73,7 +73,7 @@ export const PostDetailScreen = (): ReactElement => {
     setPost(next)
     setLikeBusy(true)
     try {
-      await toggleLike(post.postId, user.uid, liked)
+      await toggleLike(post.postId, user.uid, liked, post.userId)
     } catch {
       setPost(post)
     } finally {
@@ -98,7 +98,7 @@ export const PostDetailScreen = (): ReactElement => {
     setPosting(true)
     const text = draft.trim()
     try {
-      const id = await addComment(post.postId, user.uid, text)
+      const id = await addComment(post.postId, user.uid, text, post.userId)
       const newComment: Comment = {
         commentId: id,
         userId: user.uid,

@@ -35,3 +35,16 @@ export type Comment = {
   likesCount: number
   createdAt: Timestamp | null
 }
+
+export type NotificationType = 'like' | 'comment' | 'follow'
+
+export type Notification = {
+  notificationId: string
+  type: NotificationType
+  actorUid: string
+  recipientUid: string
+  postId?: string
+  commentId?: string
+  read: boolean
+  createdAt: Timestamp | null
+}
