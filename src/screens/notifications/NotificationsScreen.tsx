@@ -2,18 +2,11 @@ import { Ionicons } from '@expo/vector-icons'
 import { useFocusEffect, useNavigation } from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import React, { ReactElement, useCallback } from 'react'
-import {
-  ActivityIndicator,
-  FlatList,
-  ListRenderItem,
-  Pressable,
-  StyleSheet,
-  Text,
-  View
-} from 'react-native'
+import { FlatList, ListRenderItem, Pressable, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { NotificationItem } from '../../components/NotificationItem'
+import { NotificationSkeleton } from '../../components/NotificationSkeleton'
 import { useAuth } from '../../context/AuthContext'
 import { useNotifications } from '../../hooks/useNotifications'
 import { MainStackParamList } from '../../navigation/MainStack'
@@ -71,8 +64,12 @@ export const NotificationsScreen = (): ReactElement => {
       </View>
 
       {loading && notifications.length === 0 ? (
-        <View style={styles.center}>
-          <ActivityIndicator color={colors.primary} />
+        <View style={contentStyle ?? undefined}>
+          <NotificationSkeleton />
+          <NotificationSkeleton />
+          <NotificationSkeleton />
+          <NotificationSkeleton />
+          <NotificationSkeleton />
         </View>
       ) : (
         <FlatList

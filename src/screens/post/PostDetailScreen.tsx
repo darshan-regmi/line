@@ -22,10 +22,12 @@ import { AddToCollectionSheet } from '../../components/AddToCollectionSheet'
 import { Avatar } from '../../components/Avatar'
 import { BookmarkButton } from '../../components/BookmarkButton'
 import { CommentItem } from '../../components/CommentItem'
+import { CommentSkeleton } from '../../components/CommentSkeleton'
 import { HeartButton } from '../../components/HeartButton'
 import { LikesModal } from '../../components/LikesModal'
 import { ReportSheet } from '../../components/ReportSheet'
 import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../context/ToastContext'
 import { useBlockedUids } from '../../hooks/useBlockedUids'
 import { usePost } from '../../hooks/usePost'
 import { useUser } from '../../hooks/useUser'
@@ -45,6 +47,7 @@ export const PostDetailScreen = (): ReactElement => {
   const route = useRoute<R>()
   const nav = useNavigation<Nav>()
   const { user } = useAuth()
+  const toast = useToast()
 
   const { post, setPost, loading } = usePost(route.params.postId)
   const { user: author } = useUser(post?.userId)
@@ -121,9 +124,10 @@ export const PostDetailScreen = (): ReactElement => {
                 onPress: async () => {
                   try {
                     await blockUser(user.uid, post.userId)
+                    toast.show('Blocked', 'success')
                     nav.goBack()
                   } catch (err: any) {
-                    Alert.alert('Could not block', err?.message ?? 'Try again.')
+                    toast.show(err?.message ?? 'Could not block. Try again.', 'error')
                   }
                 }
               }
@@ -168,7 +172,7 @@ export const PostDetailScreen = (): ReactElement => {
       setPost({ ...post, commentsCount: post.commentsCount + 1 })
       setDraft('')
     } catch (err: any) {
-      Alert.alert('Could not comment', err?.message ?? 'Try again.')
+      toast.show(err?.message ?? 'Could not comment. Try again.', 'error')
     } finally {
       setPosting(false)
     }
@@ -299,7 +303,11 @@ export const PostDetailScreen = (): ReactElement => {
           contentContainerStyle={[styles.list, contentStyle]}
           ListEmptyComponent={
             commentsLoading ? (
-              <ActivityIndicator color={colors.textSecondary} style={{ marginTop: 16 }} />
+              <View>
+                <CommentSkeleton />
+                <CommentSkeleton />
+                <CommentSkeleton />
+              </View>
             ) : (
               <Text style={styles.empty}>Be the first to comment.</Text>
             )

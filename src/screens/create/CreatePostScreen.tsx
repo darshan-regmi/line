@@ -2,7 +2,6 @@ import { useNavigation } from '@react-navigation/native'
 import React, { ReactElement, useState } from 'react'
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -15,6 +14,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../context/ToastContext'
 import { createPost } from '../../services/postService'
 import { colors } from '../../utils/colorScheme'
 import { useContentStyle } from '../../utils/responsive'
@@ -25,6 +25,7 @@ const CONTENT_MAX = 2000
 export const CreatePostScreen = (): ReactElement => {
   const nav = useNavigation()
   const { user } = useAuth()
+  const toast = useToast()
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -44,9 +45,10 @@ export const CreatePostScreen = (): ReactElement => {
       })
       setTitle('')
       setContent('')
-      Alert.alert('Published', 'Your poem is live.', [{ text: 'OK', onPress: () => nav.goBack() }])
+      toast.show('Posted', 'success')
+      nav.goBack()
     } catch (err: any) {
-      Alert.alert('Could not publish', err?.message ?? 'Try again.')
+      toast.show(err?.message ?? 'Could not publish. Try again.', 'error')
     } finally {
       setSubmitting(false)
     }

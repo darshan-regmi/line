@@ -1,7 +1,6 @@
 import React, { ReactElement, useEffect, useState } from 'react'
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -14,6 +13,7 @@ import {
 } from 'react-native'
 
 import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 import { createReport } from '../services/reportService'
 import { colors } from '../utils/colorScheme'
 
@@ -58,6 +58,7 @@ export const ReportSheet = ({
   onClose
 }: Props): ReactElement => {
   const { user } = useAuth()
+  const toast = useToast()
   const [reason, setReason] = useState<ReportReason | null>(null)
   const [note, setNote] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -86,9 +87,9 @@ export const ReportSheet = ({
         postId
       })
       onClose()
-      Alert.alert('Report submitted', "Thanks. We'll review it.")
+      toast.show('Report submitted. Thanks.', 'success')
     } catch (err: any) {
-      Alert.alert('Could not submit', err?.message ?? 'Try again.')
+      toast.show(err?.message ?? 'Could not submit. Try again.', 'error')
     } finally {
       setSubmitting(false)
     }

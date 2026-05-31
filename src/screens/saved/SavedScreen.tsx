@@ -2,18 +2,11 @@ import { Ionicons } from '@expo/vector-icons'
 import { useNavigation } from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import React, { ReactElement, useCallback, useEffect, useState } from 'react'
-import {
-  ActivityIndicator,
-  FlatList,
-  ListRenderItem,
-  Pressable,
-  StyleSheet,
-  Text,
-  View
-} from 'react-native'
+import { FlatList, ListRenderItem, Pressable, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { PostCard } from '../../components/PostCard'
+import { PostCardSkeleton } from '../../components/PostCardSkeleton'
 import { useBookmarkIds } from '../../hooks/useBookmarkIds'
 import { MainStackParamList } from '../../navigation/MainStack'
 import { hydrateBookmarkedPosts } from '../../services/bookmarkService'
@@ -77,8 +70,10 @@ export const SavedScreen = (): ReactElement => {
       </View>
 
       {(idsLoading || hydrating) && posts.length === 0 ? (
-        <View style={styles.center}>
-          <ActivityIndicator color={colors.primary} />
+        <View style={[styles.list, contentStyle]}>
+          <PostCardSkeleton />
+          <PostCardSkeleton />
+          <PostCardSkeleton />
         </View>
       ) : (
         <FlatList

@@ -3,6 +3,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 
 import { AuthProvider } from 'src/context/AuthContext'
+import { ToastProvider } from 'src/context/ToastContext'
 import { AppNavigator } from 'src/navigation/AppNavigator'
 
 const App = (): ReactElement => {
@@ -10,7 +11,9 @@ const App = (): ReactElement => {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <AuthProvider>
-          <AppNavigator />
+          <ToastProvider>
+            <AppNavigator />
+          </ToastProvider>
         </AuthProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

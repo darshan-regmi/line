@@ -2,18 +2,11 @@ import { Ionicons } from '@expo/vector-icons'
 import { RouteProp, useFocusEffect, useNavigation, useRoute } from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import React, { ReactElement, useCallback, useState } from 'react'
-import {
-  ActivityIndicator,
-  FlatList,
-  ListRenderItem,
-  Pressable,
-  StyleSheet,
-  Text,
-  View
-} from 'react-native'
+import { FlatList, ListRenderItem, Pressable, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { PostCard } from '../../components/PostCard'
+import { PostCardSkeleton } from '../../components/PostCardSkeleton'
 import { useAuth } from '../../context/AuthContext'
 import { MainStackParamList } from '../../navigation/MainStack'
 import { hydrateBookmarkedPosts } from '../../services/bookmarkService'
@@ -101,8 +94,9 @@ export const CollectionDetailScreen = (): ReactElement => {
       </View>
 
       {loading && posts.length === 0 ? (
-        <View style={styles.center}>
-          <ActivityIndicator color={colors.primary} />
+        <View style={[styles.list, contentStyle]}>
+          <PostCardSkeleton />
+          <PostCardSkeleton />
         </View>
       ) : (
         <FlatList

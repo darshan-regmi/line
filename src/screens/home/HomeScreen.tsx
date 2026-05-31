@@ -15,6 +15,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { PostCard } from '../../components/PostCard'
+import { PostCardSkeleton } from '../../components/PostCardSkeleton'
 import { useFeed } from '../../hooks/useFeed'
 import { useFollowingUids } from '../../hooks/useFollowingUids'
 import { useNotifications } from '../../hooks/useNotifications'
@@ -83,8 +84,10 @@ export const HomeScreen = (): ReactElement => {
       </View>
 
       {(loading || followsLoading) && posts.length === 0 ? (
-        <View style={styles.center}>
-          <ActivityIndicator color={colors.primary} />
+        <View style={[styles.list, contentStyle]}>
+          <PostCardSkeleton />
+          <PostCardSkeleton />
+          <PostCardSkeleton />
         </View>
       ) : (
         <FlatList

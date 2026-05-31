@@ -2,6 +2,7 @@ import React, { memo, ReactElement, useEffect, useState } from 'react'
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native'
 
 import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 import { useUser } from '../hooks/useUser'
 import { blockUser } from '../services/blockService'
 import { toggleCommentLike } from '../services/commentService'
@@ -20,6 +21,7 @@ type Props = {
 
 const CommentItemComponent = ({ comment, postId, onReport }: Props): ReactElement => {
   const { user: currentUser } = useAuth()
+  const toast = useToast()
   const { user: author } = useUser(comment.userId)
 
   const [local, setLocal] = useState<Comment>(comment)
@@ -76,8 +78,9 @@ const CommentItemComponent = ({ comment, postId, onReport }: Props): ReactElemen
                 onPress: async () => {
                   try {
                     await blockUser(currentUser.uid, local.userId)
+                    toast.show('Blocked', 'success')
                   } catch (err: any) {
-                    Alert.alert('Could not block', err?.message ?? 'Try again.')
+                    toast.show(err?.message ?? 'Could not block. Try again.', 'error')
                   }
                 }
               }

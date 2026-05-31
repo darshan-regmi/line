@@ -1,20 +1,13 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import React, { ReactElement, useCallback, useState } from 'react'
-import {
-  ActivityIndicator,
-  FlatList,
-  ListRenderItem,
-  Pressable,
-  StyleSheet,
-  Text,
-  View
-} from 'react-native'
+import { FlatList, ListRenderItem, Pressable, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { Avatar } from '../../components/Avatar'
 import { CollectionsSection } from '../../components/CollectionsSection'
 import { PostCard } from '../../components/PostCard'
+import { PostCardSkeleton } from '../../components/PostCardSkeleton'
 import { useAuth } from '../../context/AuthContext'
 import { invalidateUserCache, useUser } from '../../hooks/useUser'
 import { MainStackParamList } from '../../navigation/MainStack'
@@ -115,8 +108,9 @@ export const ProfileScreen = (): ReactElement => {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {profileLoading && !profile ? (
-        <View style={styles.center}>
-          <ActivityIndicator color={colors.primary} />
+        <View style={[styles.list, contentStyle]}>
+          <PostCardSkeleton />
+          <PostCardSkeleton />
         </View>
       ) : (
         <FlatList
@@ -127,7 +121,10 @@ export const ProfileScreen = (): ReactElement => {
           contentContainerStyle={[styles.list, contentStyle]}
           ListEmptyComponent={
             postsLoading ? (
-              <ActivityIndicator color={colors.textSecondary} style={{ marginTop: 24 }} />
+              <View>
+                <PostCardSkeleton />
+                <PostCardSkeleton />
+              </View>
             ) : (
               <Text style={styles.empty}>No poems yet.</Text>
             )

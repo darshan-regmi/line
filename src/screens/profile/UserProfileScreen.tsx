@@ -2,24 +2,17 @@ import { Ionicons } from '@expo/vector-icons'
 import { RouteProp, useFocusEffect, useNavigation, useRoute } from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import React, { ReactElement, useCallback, useState } from 'react'
-import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  ListRenderItem,
-  Pressable,
-  StyleSheet,
-  Text,
-  View
-} from 'react-native'
+import { Alert, FlatList, ListRenderItem, Pressable, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { Avatar } from '../../components/Avatar'
 import { CollectionsSection } from '../../components/CollectionsSection'
 import { FollowButton } from '../../components/FollowButton'
 import { PostCard } from '../../components/PostCard'
+import { PostCardSkeleton } from '../../components/PostCardSkeleton'
 import { ReportSheet } from '../../components/ReportSheet'
 import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../context/ToastContext'
 import { useBlockedUids } from '../../hooks/useBlockedUids'
 import { invalidateUserCache, useUser } from '../../hooks/useUser'
 import { MainStackParamList } from '../../navigation/MainStack'
@@ -36,6 +29,7 @@ export const UserProfileScreen = (): ReactElement => {
   const route = useRoute<R>()
   const nav = useNavigation<Nav>()
   const { user: currentUser } = useAuth()
+  const toast = useToast()
   const targetUid = route.params.userId
   const isSelf = currentUser?.uid === targetUid
 
@@ -91,8 +85,9 @@ export const UserProfileScreen = (): ReactElement => {
           onPress: async () => {
             try {
               await unblockUser(currentUser.uid, targetUid)
+              toast.show('Unblocked', 'success')
             } catch (err: any) {
-              Alert.alert('Could not unblock', err?.message ?? 'Try again.')
+              toast.show(err?.message ?? 'Could not unblock. Try again.', 'error')
             }
           }
         }
@@ -117,8 +112,9 @@ export const UserProfileScreen = (): ReactElement => {
                 onPress: async () => {
                   try {
                     await blockUser(currentUser.uid, targetUid)
+                    toast.show('Blocked', 'success')
                   } catch (err: any) {
-                    Alert.alert('Could not block', err?.message ?? 'Try again.')
+                    toast.show(err?.message ?? 'Could not block. Try again.', 'error')
                   }
                 }
               }
@@ -188,8 +184,9 @@ export const UserProfileScreen = (): ReactElement => {
       </View>
 
       {profileLoading && !profile ? (
-        <View style={styles.center}>
-          <ActivityIndicator color={colors.primary} />
+        <View style={[styles.list, contentStyle]}>
+          <PostCardSkeleton />
+          <PostCardSkeleton />
         </View>
       ) : isBlocked ? (
         <View style={styles.blockedState}>
@@ -207,7 +204,10 @@ export const UserProfileScreen = (): ReactElement => {
           contentContainerStyle={[styles.list, contentStyle]}
           ListEmptyComponent={
             postsLoading ? (
-              <ActivityIndicator color={colors.textSecondary} style={{ marginTop: 24 }} />
+              <View>
+                <PostCardSkeleton />
+                <PostCardSkeleton />
+              </View>
             ) : (
               <Text style={styles.empty}>No poems yet.</Text>
             )

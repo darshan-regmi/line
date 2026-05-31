@@ -17,6 +17,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../context/ToastContext'
 import { MainStackParamList } from '../../navigation/MainStack'
 import {
   createCollection,
@@ -37,6 +38,7 @@ export const EditCollectionScreen = (): ReactElement => {
   const nav = useNavigation<Nav>()
   const route = useRoute<R>()
   const { user } = useAuth()
+  const toast = useToast()
   const collectionId = route.params?.collectionId
   const isEdit = !!collectionId
 
@@ -88,9 +90,10 @@ export const EditCollectionScreen = (): ReactElement => {
           isPublic
         })
       }
+      toast.show(isEdit ? 'Collection saved' : 'Collection created', 'success')
       nav.goBack()
     } catch (err: any) {
-      Alert.alert('Could not save', err?.message ?? 'Try again.')
+      toast.show(err?.message ?? 'Could not save. Try again.', 'error')
     } finally {
       setSaving(false)
     }
@@ -109,9 +112,10 @@ export const EditCollectionScreen = (): ReactElement => {
           onPress: async () => {
             try {
               await deleteCollection(collectionId)
+              toast.show('Collection deleted', 'success')
               nav.goBack()
             } catch (err: any) {
-              Alert.alert('Could not delete', err?.message ?? 'Try again.')
+              toast.show(err?.message ?? 'Could not delete. Try again.', 'error')
             }
           }
         }

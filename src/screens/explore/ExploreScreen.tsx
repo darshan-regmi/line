@@ -18,6 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Avatar } from '../../components/Avatar'
 import { FollowButton } from '../../components/FollowButton'
 import { PostCard } from '../../components/PostCard'
+import { PostCardSkeleton } from '../../components/PostCardSkeleton'
 import { useAuth } from '../../context/AuthContext'
 import { useFeed } from '../../hooks/useFeed'
 import { useFollowingUids } from '../../hooks/useFollowingUids'
@@ -196,8 +197,10 @@ export const ExploreScreen = (): ReactElement => {
           ) : null}
         </ScrollView>
       ) : loading && posts.length === 0 ? (
-        <View style={styles.center}>
-          <ActivityIndicator color={colors.primary} />
+        <View style={[styles.list, contentStyle]}>
+          <PostCardSkeleton />
+          <PostCardSkeleton />
+          <PostCardSkeleton />
         </View>
       ) : (
         <FlatList

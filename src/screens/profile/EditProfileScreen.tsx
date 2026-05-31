@@ -2,7 +2,6 @@ import { useNavigation } from '@react-navigation/native'
 import React, { ReactElement, useEffect, useState } from 'react'
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -15,6 +14,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../context/ToastContext'
 import { invalidateUserCache, useUser } from '../../hooks/useUser'
 import { updateUser } from '../../services/userService'
 import { colors } from '../../utils/colorScheme'
@@ -25,6 +25,7 @@ const BIO_MAX = 160
 export const EditProfileScreen = (): ReactElement => {
   const nav = useNavigation()
   const { user } = useAuth()
+  const toast = useToast()
   const { user: profile, loading } = useUser(user?.uid)
 
   const [displayName, setDisplayName] = useState('')
@@ -51,9 +52,10 @@ export const EditProfileScreen = (): ReactElement => {
         bio: bio.trim()
       })
       invalidateUserCache(user.uid)
+      toast.show('Profile saved', 'success')
       nav.goBack()
     } catch (err: any) {
-      Alert.alert('Could not save', err?.message ?? 'Try again.')
+      toast.show(err?.message ?? 'Could not save. Try again.', 'error')
     } finally {
       setSaving(false)
     }

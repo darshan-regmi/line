@@ -221,6 +221,21 @@ components:
     height: 18px
     rounded: 9px
     typography: "10px / 700"
+  toast:
+    backgroundColor: "{colors.surface}"
+    border: "1px solid {colors.border}"
+    rounded: "{rounded.pill}"
+    padding: "12px 16px"
+    bottomOffset: 88px
+    durationMs: 2500
+    kinds: "success ({colors.primary}), error ({colors.accent}), info ({colors.textSecondary})"
+    iconLibrary: "Ionicons (checkmark-circle / alert-circle / information-circle)"
+    animation: "slide-up + fade"
+  skeleton:
+    backgroundColor: "{colors.border}"
+    rounded: 6px
+    opacityPulse: "0.4 -> 0.85 -> 0.4 (700ms each, looping)"
+    variants: "PostCardSkeleton, CommentSkeleton, NotificationSkeleton"
 ---
 
 ## Overview
@@ -398,6 +413,22 @@ Sizes used in the app: 32 (comments), 36 (PostCard header), 40 (LikesModal / sug
 ### Tab bar
 
 `{components.tab-bar}`. Four tabs, Ionicons. Active tab uses the `*-filled` variant in `{colors.primary}`; inactive uses `*-outline` in `{colors.textSecondary}`.
+
+### Toasts vs Alerts
+
+`useToast()` returns a `show(message, kind?: 'success' | 'error' | 'info')` function. Toasts render as a single pill 88px from the bottom (clears the tab bar on mobile, comfortable on desktop), auto-dismiss after 2.5s, and slide-up + fade in. **Use toasts for non-destructive feedback** — "Posted", "Saved", "Could not publish", "Report submitted". Tap anywhere on the pill to dismiss early.
+
+**Keep `Alert.alert` for destructive confirmations** that require an active decision — Block, Unblock, Delete. The user has to read and confirm; a toast that auto-dismisses is the wrong affordance there.
+
+### Skeleton loaders
+
+Content-shaped placeholders that pulse opacity (0.4 → 0.85 → 0.4 in 700ms loop). Use them in place of a centered spinner whenever the surface has known structure (PostCards, comments, notifications). The `Skeleton` primitive lives in `src/components/Skeleton.tsx`; pre-shaped variants:
+
+- `PostCardSkeleton` — ghost layout matching the real PostCard (avatar + author/meta + title + 3 lines + action row)
+- `CommentSkeleton` — ghost matching a CommentItem
+- `NotificationSkeleton` — ghost matching a NotificationItem
+
+Render 2–5 of these in the loading state instead of `<ActivityIndicator />`. The perceived performance improvement is significant: the user sees a shaped placeholder immediately rather than a blank screen with a spinner.
 
 ### Heart / Bookmark / Follow buttons
 
