@@ -36,6 +36,12 @@
           "color": "#00D9FF"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "98132828-dee3-47e6-8945-dfae4ccd83c5"
+      }
+    },
+    "owner": "darshan_regmi"
   }
 }
