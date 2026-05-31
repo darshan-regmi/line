@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons'
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
+import { BottomTabBar, createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import React, { ReactElement } from 'react'
 import { StyleSheet } from 'react-native'
 
@@ -9,6 +9,8 @@ import { HomeScreen } from '../screens/home/HomeScreen'
 import { ProfileScreen } from '../screens/profile/ProfileScreen'
 import { colors } from '../utils/colorScheme'
 import { useBreakpoint } from '../utils/responsive'
+
+import { DesktopSidebar } from './DesktopSidebar'
 
 export type MainTabsParamList = {
   Home: undefined
@@ -29,57 +31,26 @@ const tabIcon = (outline: IoniconsName, filled: IoniconsName) => {
   return TabIcon
 }
 
-const SIDEBAR_WIDTH = 72
-
 export const MainTabs = (): ReactElement => {
-  // On desktop (>= 1024) the bottom-tab navigator flips to a narrow
-  // icon-only left sidebar — matches Instagram's collapsed-rail look.
-  // React Navigation handles content offset automatically.
+  // On desktop (>= 1024) we render a custom 72px icon-only left rail
+  // (see DesktopSidebar). At smaller widths we fall back to the default
+  // BottomTabBar at the bottom of the screen.
   const { isDesktop } = useBreakpoint()
 
   return (
     <Tab.Navigator
+      tabBar={(props) => (isDesktop ? <DesktopSidebar {...props} /> : <BottomTabBar {...props} />)}
       screenOptions={{
         headerShown: false,
-        tabBarPosition: isDesktop ? 'left' : 'bottom',
-        // 'material' + 'below-icon' is the only combination RN Nav v7 allows
-        // in a left/right sidebar that disables the default ~280px minWidth.
-        tabBarVariant: isDesktop ? 'material' : 'uikit',
-        tabBarLabelPosition: isDesktop ? 'below-icon' : undefined,
-        tabBarShowLabel: !isDesktop,
+        tabBarShowLabel: true,
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textSecondary,
-        tabBarStyle: isDesktop
-          ? {
-              backgroundColor: colors.surface,
-              borderRightWidth: StyleSheet.hairlineWidth,
-              borderRightColor: colors.border,
-              borderTopWidth: 0,
-              width: SIDEBAR_WIDTH,
-              minWidth: SIDEBAR_WIDTH,
-              maxWidth: SIDEBAR_WIDTH,
-              paddingTop: 16,
-              paddingHorizontal: 0,
-              alignItems: 'center'
-            }
-          : {
-              backgroundColor: colors.surface,
-              borderTopWidth: StyleSheet.hairlineWidth,
-              borderTopColor: colors.border
-            },
-        tabBarItemStyle: isDesktop
-          ? {
-              width: 48,
-              height: 48,
-              flex: 0,
-              marginVertical: 6,
-              borderRadius: 12,
-              alignItems: 'center',
-              justifyContent: 'center'
-            }
-          : undefined,
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
-        tabBarIconStyle: isDesktop ? { marginTop: 0 } : undefined
+        tabBarStyle: {
+          backgroundColor: colors.surface,
+          borderTopWidth: StyleSheet.hairlineWidth,
+          borderTopColor: colors.border
+        },
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' }
       }}
     >
       <Tab.Screen
