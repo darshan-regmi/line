@@ -1,7 +1,7 @@
 import { QueryDocumentSnapshot } from 'firebase/firestore'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
-import { FeedMode, getFeedPage, subscribeFeedFirstPage } from '../services/postService'
+import { FeedMode, getFeedPage, PAGE_SIZE, subscribeFeedFirstPage } from '../services/postService'
 
 import { Post } from '../types'
 
@@ -46,6 +46,10 @@ export const useFeed = (mode: FeedMode = 'latest', followedUids: string[] = []) 
       (posts, lastDoc) => {
         setFirstPage(posts)
         setFirstPageLastDoc(lastDoc)
+        // If the first page came back smaller than PAGE_SIZE, there are no
+        // more pages to load — otherwise the footer spinner would run forever
+        // for feeds with fewer than PAGE_SIZE posts.
+        setHasMore(posts.length === PAGE_SIZE)
         setLoading(false)
       },
       (err) => {

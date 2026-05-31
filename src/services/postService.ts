@@ -25,7 +25,7 @@ import { db } from '../config/firebase'
 import { Post } from '../types'
 import { createNotification } from './notificationService'
 
-const PAGE_SIZE = 10
+export const PAGE_SIZE = 10
 
 const postFromDoc = (snap: QueryDocumentSnapshot | DocumentSnapshot): Post => {
   const data = snap.data() ?? {}
