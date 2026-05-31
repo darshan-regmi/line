@@ -408,7 +408,7 @@ service firebase.storage {
   - **Limitation:** filtering is one-way client-side. A blocked user can still see your content and write actions toward you; their writes just don't surface in your client. True mutual blocking needs rule-level enforcement (Phase 4).
 - [ ] FCM push delivery (deferred from Phase 2 — needs Blaze + APNs + dev build)
 - [ ] Direct messaging (1:1 DMs)
-- [ ] Comment reporting + comment-author blocking (post + user shipped; comment-level pending)
+- [x] Comment reporting + comment-author blocking — long-press a comment to open the action menu; reporting reuses the ReportSheet with `targetType: 'comment'`; blocking flows through the same `blockUser` service. Blocked authors' comments are filtered out of PostDetail in addition to feeds/notifications.
 
 ---
 

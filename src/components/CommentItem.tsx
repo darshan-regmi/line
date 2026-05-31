@@ -1,8 +1,9 @@
 import React, { memo, ReactElement, useEffect, useState } from 'react'
-import { StyleSheet, Text, View } from 'react-native'
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native'
 
 import { useAuth } from '../context/AuthContext'
 import { useUser } from '../hooks/useUser'
+import { blockUser } from '../services/blockService'
 import { toggleCommentLike } from '../services/commentService'
 import { colors } from '../utils/colorScheme'
 import { formatRelativeTime } from '../utils/formatters'
@@ -14,9 +15,10 @@ import { HeartButton } from './HeartButton'
 type Props = {
   comment: Comment
   postId: string
+  onReport: (comment: Comment) => void
 }
 
-const CommentItemComponent = ({ comment, postId }: Props): ReactElement => {
+const CommentItemComponent = ({ comment, postId, onReport }: Props): ReactElement => {
   const { user: currentUser } = useAuth()
   const { user: author } = useUser(comment.userId)
 
@@ -30,6 +32,7 @@ const CommentItemComponent = ({ comment, postId }: Props): ReactElement => {
   }, [comment])
 
   const liked = !!currentUser && local.likes.includes(currentUser.uid)
+  const canModerate = !!currentUser && currentUser.uid !== local.userId
 
   const handleLike = async () => {
     if (!currentUser || busy) return
@@ -53,8 +56,41 @@ const CommentItemComponent = ({ comment, postId }: Props): ReactElement => {
     }
   }
 
+  const openActionMenu = () => {
+    if (!currentUser || !canModerate) return
+    const handle = author?.displayName ?? 'this author'
+    Alert.alert('More options', undefined, [
+      { text: 'Report comment', onPress: () => onReport(local) },
+      {
+        text: `Block ${handle}`,
+        style: 'destructive',
+        onPress: () => {
+          Alert.alert(
+            `Block ${handle}?`,
+            "You won't see their poems, comments, or notifications.",
+            [
+              { text: 'Cancel', style: 'cancel' },
+              {
+                text: 'Block',
+                style: 'destructive',
+                onPress: async () => {
+                  try {
+                    await blockUser(currentUser.uid, local.userId)
+                  } catch (err: any) {
+                    Alert.alert('Could not block', err?.message ?? 'Try again.')
+                  }
+                }
+              }
+            ]
+          )
+        }
+      },
+      { text: 'Cancel', style: 'cancel' }
+    ])
+  }
+
   return (
-    <View style={styles.row}>
+    <Pressable onLongPress={openActionMenu} delayLongPress={400} style={styles.row}>
       <Avatar name={author?.displayName ?? '?'} avatarIndex={author?.avatarIndex} size={32} />
       <View style={styles.body}>
         <View style={styles.metaRow}>
@@ -74,7 +110,7 @@ const CommentItemComponent = ({ comment, postId }: Props): ReactElement => {
           />
         </View>
       </View>
-    </View>
+    </Pressable>
   )
 }
 

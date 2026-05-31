@@ -25,6 +25,7 @@ import { HeartButton } from '../../components/HeartButton'
 import { LikesModal } from '../../components/LikesModal'
 import { ReportSheet } from '../../components/ReportSheet'
 import { useAuth } from '../../context/AuthContext'
+import { useBlockedUids } from '../../hooks/useBlockedUids'
 import { usePost } from '../../hooks/usePost'
 import { useUser } from '../../hooks/useUser'
 import { MainStackParamList } from '../../navigation/MainStack'
@@ -54,6 +55,8 @@ export const PostDetailScreen = (): ReactElement => {
   const [likesModalVisible, setLikesModalVisible] = useState(false)
   const [collectionSheetVisible, setCollectionSheetVisible] = useState(false)
   const [reportSheetVisible, setReportSheetVisible] = useState(false)
+  const [reportingComment, setReportingComment] = useState<Comment | null>(null)
+  const { idSet: blockedSet } = useBlockedUids()
 
   const postId = post?.postId
   useEffect(() => {
@@ -183,8 +186,17 @@ export const PostDetailScreen = (): ReactElement => {
     )
   }
 
+  const visibleComments = comments.filter((c) => !blockedSet.has(c.userId))
+
   const renderComment: ListRenderItem<Comment> = ({ item }) => (
-    <CommentItem comment={item} postId={post.postId} />
+    <CommentItem
+      comment={item}
+      postId={post.postId}
+      onReport={(c) => {
+        setReportingComment(c)
+        setReportSheetVisible(true)
+      }}
+    />
   )
 
   const header = (
@@ -276,7 +288,7 @@ export const PostDetailScreen = (): ReactElement => {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
       >
         <FlatList
-          data={comments}
+          data={visibleComments}
           keyExtractor={(c) => c.commentId}
           renderItem={renderComment}
           ListHeaderComponent={header}
@@ -341,10 +353,13 @@ export const PostDetailScreen = (): ReactElement => {
 
       <ReportSheet
         visible={reportSheetVisible}
-        targetType="post"
-        targetId={post.postId}
+        targetType={reportingComment ? 'comment' : 'post'}
+        targetId={reportingComment ? reportingComment.commentId : post.postId}
         postId={post.postId}
-        onClose={() => setReportSheetVisible(false)}
+        onClose={() => {
+          setReportSheetVisible(false)
+          setReportingComment(null)
+        }}
       />
     </SafeAreaView>
   )
