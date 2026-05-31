@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { useAuth } from '../context/AuthContext'
 import { subscribeNotifications } from '../services/notificationService'
 
 import { Notification } from '../types'
+import { useBlockedUids } from './useBlockedUids'
 
 /**
  * Real-time inbox for the current user.
@@ -38,7 +39,16 @@ export const useNotifications = () => {
     return unsubscribe
   }, [uid])
 
-  const unreadCount = notifications.filter((n) => !n.read).length
+  const { idSet: blockedSet } = useBlockedUids()
 
-  return { notifications, unreadCount, loading }
+  // Filter out notifications from blocked actors. The actor's client wrote
+  // the doc; rules permit that. Visibility is enforced client-side.
+  const visible = useMemo(
+    () => notifications.filter((n) => !blockedSet.has(n.actorUid)),
+    [notifications, blockedSet]
+  )
+
+  const unreadCount = visible.filter((n) => !n.read).length
+
+  return { notifications: visible, unreadCount, loading }
 }

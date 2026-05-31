@@ -404,10 +404,11 @@ service firebase.storage {
 **Operations & growth**
 
 - [x] Content moderation — report sheet for posts and users; write-only `/reports` collection (clients can't read, update, or delete); seven structured reason codes plus optional 280-char note. Reviewed by admins through Firebase Console.
+- [x] User blocking — `/users/{uid}/blocked/{blockedUid}` strictly-private subcollection; action menu (`Alert.alert`) on PostDetail and UserProfile lets you Block / Unblock / Report; blocked users' posts vanish from Home and Explore feeds, their notifications are hidden from your inbox, and their profile renders a "Blocked" state with an unblock CTA.
+  - **Limitation:** filtering is one-way client-side. A blocked user can still see your content and write actions toward you; their writes just don't surface in your client. True mutual blocking needs rule-level enforcement (Phase 4).
 - [ ] FCM push delivery (deferred from Phase 2 — needs Blaze + APNs + dev build)
 - [ ] Direct messaging (1:1 DMs)
-- [ ] User blocking (build on the report flow)
-- [ ] Comment reporting (post + user shipped; comment trigger pending)
+- [ ] Comment reporting + comment-author blocking (post + user shipped; comment-level pending)
 
 ---
 
@@ -515,4 +516,4 @@ Line is built with the belief that **poetry deserves a beautiful platform**. Eve
 
 **Made with 💚 by Darshan Regmi**
 
-_Last updated: May 2026 — Phase 1 and Phase 2 (in-app) complete. Phase 3 underway: view counts + bookmarks + collections + moderation shipped; DMs queued._
+_Last updated: May 2026 — Phase 1 and Phase 2 (in-app) complete. Phase 3 underway: view counts + bookmarks + collections + moderation + user blocking shipped; DMs queued._

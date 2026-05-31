@@ -61,6 +61,13 @@ service cloud.firestore {
         allow read, create, update, delete: if isSelf(userId);
       }
 
+      // Blocked-users subcollection — strictly private to the blocker.
+      // Doc id == the blocked user's uid; body holds blockedAt.
+      // /users/{uid}/blocked/{blockedUid}
+      match /blocked/{blockedUid} {
+        allow read, create, update, delete: if isSelf(userId);
+      }
+
       // Notifications subcollection — recipient-owned inbox.
       // Any signed-in user (the "actor") can drop a notification here, but
       // they can never read what's in someone else's inbox.

@@ -3,6 +3,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import React, { ReactElement, useCallback, useState } from 'react'
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   ListRenderItem,
   Pressable,
@@ -18,8 +19,10 @@ import { FollowButton } from '../../components/FollowButton'
 import { PostCard } from '../../components/PostCard'
 import { ReportSheet } from '../../components/ReportSheet'
 import { useAuth } from '../../context/AuthContext'
+import { useBlockedUids } from '../../hooks/useBlockedUids'
 import { invalidateUserCache, useUser } from '../../hooks/useUser'
 import { MainStackParamList } from '../../navigation/MainStack'
+import { blockUser, unblockUser } from '../../services/blockService'
 import { getUserPosts } from '../../services/postService'
 import { Post } from '../../types'
 import { colors } from '../../utils/colorScheme'
@@ -35,6 +38,8 @@ export const UserProfileScreen = (): ReactElement => {
   const isSelf = currentUser?.uid === targetUid
 
   const { user: profile, loading: profileLoading } = useUser(targetUid)
+  const { idSet: blockedSet } = useBlockedUids()
+  const isBlocked = blockedSet.has(targetUid)
 
   const [posts, setPosts] = useState<Post[]>([])
   const [postsLoading, setPostsLoading] = useState(true)
@@ -70,6 +75,57 @@ export const UserProfileScreen = (): ReactElement => {
   )
 
   const followersDisplay = (profile?.followersCount ?? 0) + optimisticFollowerDelta
+
+  const openActionMenu = () => {
+    if (!currentUser) return
+    const handle = profile?.displayName ?? 'this account'
+
+    if (isBlocked) {
+      Alert.alert(`Unblock ${handle}?`, "You'll see their poems and notifications again.", [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Unblock',
+          onPress: async () => {
+            try {
+              await unblockUser(currentUser.uid, targetUid)
+            } catch (err: any) {
+              Alert.alert('Could not unblock', err?.message ?? 'Try again.')
+            }
+          }
+        }
+      ])
+      return
+    }
+
+    Alert.alert('More options', undefined, [
+      { text: 'Report account', onPress: () => setReportSheetVisible(true) },
+      {
+        text: 'Block',
+        style: 'destructive',
+        onPress: () => {
+          Alert.alert(
+            `Block ${handle}?`,
+            "You won't see their poems or notifications. You can unblock anytime from their profile.",
+            [
+              { text: 'Cancel', style: 'cancel' },
+              {
+                text: 'Block',
+                style: 'destructive',
+                onPress: async () => {
+                  try {
+                    await blockUser(currentUser.uid, targetUid)
+                  } catch (err: any) {
+                    Alert.alert('Could not block', err?.message ?? 'Try again.')
+                  }
+                }
+              }
+            ]
+          )
+        }
+      },
+      { text: 'Cancel', style: 'cancel' }
+    ])
+  }
 
   const header = (
     <View style={styles.headerCard}>
@@ -119,7 +175,7 @@ export const UserProfileScreen = (): ReactElement => {
           <Text style={styles.back}>← Back</Text>
         </Pressable>
         {!isSelf ? (
-          <Pressable onPress={() => setReportSheetVisible(true)} hitSlop={10}>
+          <Pressable onPress={openActionMenu} hitSlop={10}>
             <Text style={styles.headerIcon}>⋯</Text>
           </Pressable>
         ) : (
@@ -130,6 +186,13 @@ export const UserProfileScreen = (): ReactElement => {
       {profileLoading && !profile ? (
         <View style={styles.center}>
           <ActivityIndicator color={colors.primary} />
+        </View>
+      ) : isBlocked ? (
+        <View style={styles.blockedState}>
+          <Text style={styles.blockedTitle}>You blocked {profile?.displayName ?? 'this user'}</Text>
+          <Text style={styles.blockedSub}>
+            Their poems and notifications are hidden from you. Tap ⋯ to unblock.
+          </Text>
         </View>
       ) : (
         <FlatList
@@ -178,6 +241,15 @@ const styles = StyleSheet.create({
   },
   back: { color: colors.primary, fontSize: 16 },
   headerIcon: { color: colors.textSecondary, fontSize: 24, fontWeight: '700', marginTop: -6 },
+  blockedState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 40,
+    gap: 8
+  },
+  blockedTitle: { color: colors.textPrimary, fontSize: 17, fontWeight: '700', textAlign: 'center' },
+  blockedSub: { color: colors.textSecondary, fontSize: 14, textAlign: 'center', lineHeight: 20 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   list: { padding: 16, paddingBottom: 40 },
 

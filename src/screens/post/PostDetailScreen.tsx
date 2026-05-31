@@ -28,6 +28,7 @@ import { useAuth } from '../../context/AuthContext'
 import { usePost } from '../../hooks/usePost'
 import { useUser } from '../../hooks/useUser'
 import { MainStackParamList } from '../../navigation/MainStack'
+import { blockUser } from '../../services/blockService'
 import { addComment, subscribeComments } from '../../services/commentService'
 import { incrementPostView, toggleLike } from '../../services/postService'
 import { Comment } from '../../types'
@@ -90,6 +91,42 @@ export const PostDetailScreen = (): ReactElement => {
     } finally {
       setLikeBusy(false)
     }
+  }
+
+  // Cross-platform action sheet via Alert. iOS+Android both render as a
+  // multi-button dialog.
+  const openActionMenu = () => {
+    if (!user || !post) return
+    const handle = author?.displayName ?? 'this author'
+    Alert.alert('More options', undefined, [
+      { text: 'Report poem', onPress: () => setReportSheetVisible(true) },
+      {
+        text: `Block ${handle}`,
+        style: 'destructive',
+        onPress: () => {
+          Alert.alert(
+            `Block ${handle}?`,
+            'You won’t see their poems or notifications. You can unblock anytime from their profile.',
+            [
+              { text: 'Cancel', style: 'cancel' },
+              {
+                text: 'Block',
+                style: 'destructive',
+                onPress: async () => {
+                  try {
+                    await blockUser(user.uid, post.userId)
+                    nav.goBack()
+                  } catch (err: any) {
+                    Alert.alert('Could not block', err?.message ?? 'Try again.')
+                  }
+                }
+              }
+            ]
+          )
+        }
+      },
+      { text: 'Cancel', style: 'cancel' }
+    ])
   }
 
   const handleShare = async () => {
@@ -223,7 +260,7 @@ export const PostDetailScreen = (): ReactElement => {
         </Pressable>
         <View style={styles.headerRight}>
           {user && user.uid !== post.userId ? (
-            <Pressable onPress={() => setReportSheetVisible(true)} hitSlop={10}>
+            <Pressable onPress={openActionMenu} hitSlop={10}>
               <Text style={styles.headerIcon}>⋯</Text>
             </Pressable>
           ) : null}

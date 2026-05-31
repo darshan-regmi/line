@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { FeedMode, getFeedPage, PAGE_SIZE, subscribeFeedFirstPage } from '../services/postService'
 
 import { Post } from '../types'
+import { useBlockedUids } from './useBlockedUids'
 
 /**
  * Real-time feed hook.
@@ -62,17 +63,20 @@ export const useFeed = (mode: FeedMode = 'latest', followedUids: string[] = []) 
     return unsubscribe
   }, [mode, uidsKey])
 
+  const { idSet: blockedSet } = useBlockedUids()
+
   const posts = useMemo<Post[]>(() => {
     const seen = new Set<string>()
     const merged: Post[] = []
     for (const p of [...firstPage, ...extras]) {
-      if (!seen.has(p.postId)) {
-        seen.add(p.postId)
-        merged.push(p)
-      }
+      if (seen.has(p.postId)) continue
+      // Hide posts authored by anyone the current user has blocked.
+      if (blockedSet.has(p.userId)) continue
+      seen.add(p.postId)
+      merged.push(p)
     }
     return merged
-  }, [firstPage, extras])
+  }, [firstPage, extras, blockedSet])
 
   // The listener already keeps the first page fresh; "refresh" just resets the
   // paginated extras so the user lands back at the top of the live window.
