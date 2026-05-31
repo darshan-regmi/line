@@ -29,12 +29,12 @@ const tabIcon = (outline: IoniconsName, filled: IoniconsName) => {
   return TabIcon
 }
 
-const SIDEBAR_WIDTH = 220
+const SIDEBAR_WIDTH = 72
 
 export const MainTabs = (): ReactElement => {
-  // On desktop (>= 1024) the bottom-tab navigator flips to a left sidebar.
-  // React Navigation handles content offset automatically — the screen
-  // content area shrinks by the sidebar's width.
+  // On desktop (>= 1024) the bottom-tab navigator flips to a narrow
+  // icon-only left sidebar — matches Instagram's collapsed-rail look.
+  // React Navigation handles content offset automatically.
   const { isDesktop } = useBreakpoint()
 
   return (
@@ -42,7 +42,7 @@ export const MainTabs = (): ReactElement => {
       screenOptions={{
         headerShown: false,
         tabBarPosition: isDesktop ? 'left' : 'bottom',
-        tabBarLabelPosition: isDesktop ? 'beside-icon' : 'below-icon',
+        tabBarShowLabel: !isDesktop,
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textSecondary,
         tabBarStyle: isDesktop
@@ -52,7 +52,8 @@ export const MainTabs = (): ReactElement => {
               borderRightColor: colors.border,
               borderTopWidth: 0,
               width: SIDEBAR_WIDTH,
-              paddingTop: 24
+              paddingTop: 16,
+              alignItems: 'center'
             }
           : {
               backgroundColor: colors.surface,
@@ -61,15 +62,17 @@ export const MainTabs = (): ReactElement => {
             },
         tabBarItemStyle: isDesktop
           ? {
-              justifyContent: 'flex-start',
-              paddingHorizontal: 20,
-              paddingVertical: 12,
-              marginVertical: 2
+              width: 48,
+              height: 48,
+              flex: 0,
+              marginVertical: 6,
+              borderRadius: 12,
+              alignItems: 'center',
+              justifyContent: 'center'
             }
           : undefined,
-        tabBarLabelStyle: isDesktop
-          ? { fontSize: 14, fontWeight: '600', marginLeft: 16 }
-          : { fontSize: 11, fontWeight: '600' }
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
+        tabBarIconStyle: isDesktop ? { marginTop: 0 } : undefined
       }}
     >
       <Tab.Screen

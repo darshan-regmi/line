@@ -347,7 +347,7 @@ The page background stays full-width; only the inner content is constrained.
 
 ### Desktop navigation
 
-On viewports ≥ 1024px (`isDesktop`) the bottom tab bar flips to a **220px left sidebar** via React Navigation's built-in `tabBarPosition: 'left'`. Labels render `beside-icon` instead of `below-icon`. Items are left-aligned with 20px horizontal padding so they read as a list, not centred chips. The screen content area shrinks by the sidebar width automatically — `useContentStyle()` keeps centring the column within the remaining space.
+On viewports ≥ 1024px (`isDesktop`) the bottom tab bar flips to a **72px icon-only left sidebar** — matches Instagram's collapsed-rail look. Labels are hidden (`tabBarShowLabel: false`); each item is a 48×48 rounded hit area centred horizontally in the rail. The screen content area shrinks by the sidebar width automatically — `useContentStyle()` keeps centring the column within the remaining space.
 
 Transition is automatic on window resize: `useBreakpoint()` watches `useWindowDimensions()`, the screenOptions object re-evaluates, and the navigator re-renders with the new tabBarPosition.
 
@@ -448,7 +448,7 @@ Reanimated is installed but unused. New animations should use the built-in `Anim
 |---|---|
 | Mobile (< 600) | Full-width single column; bottom tab bar; sheets slide from bottom |
 | Tablet (600 – 1023) | Single column centred at 640; dark margins outside; bottom tabs span full width |
-| Desktop (≥ 1024) | Left sidebar nav (220px), centred 640 column to the right of the sidebar |
+| Desktop (≥ 1024) | Icon-only left sidebar (72px), centred 640 column to the right of the sidebar |
 
 The collapse from desktop down to mobile is **trivial** because the layout is the same column at every size — only the surrounding margin disappears.
 
