@@ -2,6 +2,7 @@ import { useNavigation } from '@react-navigation/native'
 import React, { ReactElement, useEffect, useState } from 'react'
 import {
   ActivityIndicator,
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -13,10 +14,11 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
+import { auth } from '../../config/firebase'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
 import { invalidateUserCache, useUser } from '../../hooks/useUser'
-import { updateUser } from '../../services/userService'
+import { deleteAccount, updateUser } from '../../services/userService'
 import { colors } from '../../utils/colorScheme'
 import { useContentStyle } from '../../utils/responsive'
 
@@ -31,7 +33,59 @@ export const EditProfileScreen = (): ReactElement => {
   const [displayName, setDisplayName] = useState('')
   const [bio, setBio] = useState('')
   const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const contentStyle = useContentStyle()
+
+  const handleDeleteAccount = () => {
+    if (!user || deleting) return
+    Alert.alert(
+      'Delete account?',
+      'This permanently removes your profile, posts (unpublished), bookmarks, ' +
+        'collections, blocked list, and follow relationships. Direct messages ' +
+        'you sent may remain visible to the other participant. This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Continue',
+          style: 'destructive',
+          onPress: () =>
+            Alert.alert(
+              'Are you absolutely sure?',
+              'Last chance — your account and data are erased immediately.',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Delete account',
+                  style: 'destructive',
+                  onPress: async () => {
+                    setDeleting(true)
+                    try {
+                      await deleteAccount(user.uid)
+                      try {
+                        await auth.currentUser?.delete()
+                      } catch (authErr: any) {
+                        // Firebase requires recent login for delete; surface a clear hint
+                        const code = authErr?.code ?? ''
+                        if (code === 'auth/requires-recent-login') {
+                          toast.show('For security, sign in again then retry deletion.', 'error')
+                          return
+                        }
+                        throw authErr
+                      }
+                      // AuthListener will catch the null user and bounce to the AuthStack
+                    } catch (err: any) {
+                      toast.show(err?.message ?? 'Could not delete account.', 'error')
+                    } finally {
+                      setDeleting(false)
+                    }
+                  }
+                }
+              ]
+            )
+        }
+      ]
+    )
+  }
 
   useEffect(() => {
     if (profile) {
@@ -115,6 +169,28 @@ export const EditProfileScreen = (): ReactElement => {
             <Text style={styles.counter}>
               {bio.length}/{BIO_MAX}
             </Text>
+
+            <View style={styles.dangerZone}>
+              <Text style={styles.dangerLabel}>Danger zone</Text>
+              <Pressable
+                onPress={handleDeleteAccount}
+                disabled={deleting}
+                style={({ pressed }) => [
+                  styles.deleteBtn,
+                  pressed && { opacity: 0.7 },
+                  deleting && { opacity: 0.5 }
+                ]}
+              >
+                {deleting ? (
+                  <ActivityIndicator color={colors.accent} size="small" />
+                ) : (
+                  <Text style={styles.deleteBtnText}>Delete account</Text>
+                )}
+              </Pressable>
+              <Text style={styles.dangerHint}>
+                Permanently removes your profile and unpublishes all your poems. Cannot be undone.
+              </Text>
+            </View>
           </ScrollView>
         </KeyboardAvoidingView>
       )}
@@ -160,5 +236,29 @@ const styles = StyleSheet.create({
   },
   bioInput: { minHeight: 100 },
   counter: { color: colors.textMuted, fontSize: 11, marginTop: 4, textAlign: 'right' },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' }
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  dangerZone: {
+    marginTop: 48,
+    paddingTop: 24,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border
+  },
+  dangerLabel: {
+    color: colors.accent,
+    fontSize: 12,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 12
+  },
+  deleteBtn: {
+    backgroundColor: colors.surface,
+    borderColor: colors.accent,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center'
+  },
+  deleteBtnText: { color: colors.accent, fontSize: 15, fontWeight: '600' },
+  dangerHint: { color: colors.textMuted, fontSize: 12, marginTop: 10, lineHeight: 18 }
 })

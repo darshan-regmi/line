@@ -429,7 +429,7 @@ service firebase.storage {
 
 - [x] Privacy Policy + Terms of Service screens — full plain-English policies under `src/screens/legal/`, linked from the LoginScreen footer ("By continuing you agree to…") and the Profile screen ("Privacy · Terms" row). Both routes mounted on `AuthStack` and `MainStack` so signed-out users can read them before signup. Effective date stamped, contact email included.
 - [x] Username uniqueness — top-level `/usernames/{lower}` claim collection. Rules: `get` is public (so signup pre-check works pre-auth), `create` only if `uid == request.auth.uid`, `update` denied, `delete` only by the claim owner. `ensureUserDoc` attempts to claim the desired username and falls back to `<email-prefix><uid-suffix>` on collision. The signup form debounces a live availability check (`available / taken / invalid`) with red/green border feedback.
-- [ ] Account deletion — irreversible self-serve deletion from Edit Profile
+- [x] Account deletion — `deleteAccount(uid)` in `userService.ts` does a best-effort sweep: unpublishes authored posts (so threads stay readable), wipes the user's bookmarks / blocked / following / followers / notifications subcollections, mirrors follow decrements on the other side, deletes owned collections, releases the `/usernames/{lower}` claim, then deletes `/users/{uid}`. DMs are preserved per the privacy policy. Edit profile screen has a danger-zone double-confirm; on `auth/requires-recent-login` the user is asked to sign in again and retry.
 - [ ] APK distribution — sideload build profile + install instructions for website hosting
 
 ---

@@ -72,6 +72,133 @@ export const releaseUsername = async (usernameLower: string): Promise<void> => {
   }
 }
 
+/**
+ * Self-deletes the user's data in a best-effort sweep before the caller
+ * deletes the Firebase Auth account. Steps:
+ *   1. Unpublish (don't delete) every post authored by this user, so other
+ *      users' comments/likes don't vanish mid-thread.
+ *   2. Delete the user's bookmarks, blocked, following, followers, and
+ *      notifications subcollections.
+ *   3. For each user we follow, decrement their followersCount; for each
+ *      follower of ours, decrement their followingCount (mirrors unfollow).
+ *   4. Delete every collection we own and its post-references subcollection.
+ *   5. Release the /usernames/{lower} claim.
+ *   6. Delete /users/{uid}.
+ *
+ * DMs are intentionally untouched: thread rules deny client deletes so
+ * history is preserved for the other participant (called out in the
+ * privacy policy).
+ *
+ * Each step is wrapped — partial cleanup is better than an early abort.
+ */
+export const deleteAccount = async (uid: string): Promise<void> => {
+  const profile = await getUser(uid)
+
+  // 1) Unpublish authored posts
+  try {
+    const posts = await getDocs(query(collection(db, 'posts'), where('userId', '==', uid)))
+    await Promise.all(
+      posts.docs.map((p) =>
+        updateDoc(p.ref, { isPublished: false, updatedAt: serverTimestamp() }).catch(() => {})
+      )
+    )
+  } catch {
+    /* best-effort */
+  }
+
+  // 2) Wipe per-user subcollections that only the owner can touch
+  const wipeSubcollection = async (name: string): Promise<void> => {
+    try {
+      const snap = await getDocs(collection(db, 'users', uid, name))
+      await Promise.all(snap.docs.map((d) => deleteDoc(d.ref).catch(() => {})))
+    } catch {
+      /* best-effort */
+    }
+  }
+
+  // 3) Symmetric follow cleanup — read first so we know whom to decrement
+  let followingUids: string[] = []
+  let followerUids: string[] = []
+  try {
+    const [followingSnap, followersSnap] = await Promise.all([
+      getDocs(collection(db, 'users', uid, 'following')),
+      getDocs(collection(db, 'users', uid, 'followers'))
+    ])
+    followingUids = followingSnap.docs.map((d) => d.id)
+    followerUids = followersSnap.docs.map((d) => d.id)
+  } catch {
+    /* best-effort */
+  }
+
+  await Promise.all([
+    wipeSubcollection('bookmarks'),
+    wipeSubcollection('blocked'),
+    wipeSubcollection('notifications'),
+    wipeSubcollection('following'),
+    wipeSubcollection('followers')
+  ])
+
+  // Remove the inverse edges and decrement counters on the other end
+  await Promise.all([
+    ...followingUids.map(async (target) => {
+      try {
+        await deleteDoc(doc(db, 'users', target, 'followers', uid))
+        await updateDoc(doc(db, 'users', target), {
+          followersCount: increment(-1),
+          updatedAt: serverTimestamp()
+        })
+      } catch {
+        /* best-effort */
+      }
+    }),
+    ...followerUids.map(async (follower) => {
+      try {
+        await deleteDoc(doc(db, 'users', follower, 'following', uid))
+        await updateDoc(doc(db, 'users', follower), {
+          followingCount: increment(-1),
+          updatedAt: serverTimestamp()
+        })
+      } catch {
+        /* best-effort */
+      }
+    })
+  ])
+
+  // 4) Owned collections
+  try {
+    const owned = await getDocs(query(collection(db, 'collections'), where('ownerId', '==', uid)))
+    await Promise.all(
+      owned.docs.map(async (col) => {
+        try {
+          const inner = await getDocs(collection(db, 'collections', col.id, 'posts'))
+          await Promise.all(inner.docs.map((p) => deleteDoc(p.ref).catch(() => {})))
+        } catch {
+          /* best-effort */
+        }
+        try {
+          await deleteDoc(col.ref)
+        } catch {
+          /* best-effort */
+        }
+      })
+    )
+  } catch {
+    /* best-effort */
+  }
+
+  // 5) Release the username
+  if (profile?.username) {
+    await releaseUsername(profile.username.toLowerCase())
+  }
+
+  // 6) Finally, the user doc itself
+  try {
+    await deleteDoc(doc(db, 'users', uid))
+  } catch {
+    /* best-effort */
+  }
+}
+
 export const ensureUserDoc = async (firebaseUser: FirebaseUser): Promise<UserProfile> => {
   const existing = await getUser(firebaseUser.uid)
   if (existing) return existing
