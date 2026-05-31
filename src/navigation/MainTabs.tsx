@@ -42,6 +42,10 @@ export const MainTabs = (): ReactElement => {
       screenOptions={{
         headerShown: false,
         tabBarPosition: isDesktop ? 'left' : 'bottom',
+        // 'material' + 'below-icon' is the only combination RN Nav v7 allows
+        // in a left/right sidebar that disables the default ~280px minWidth.
+        tabBarVariant: isDesktop ? 'material' : 'uikit',
+        tabBarLabelPosition: isDesktop ? 'below-icon' : undefined,
         tabBarShowLabel: !isDesktop,
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textSecondary,
@@ -52,7 +56,10 @@ export const MainTabs = (): ReactElement => {
               borderRightColor: colors.border,
               borderTopWidth: 0,
               width: SIDEBAR_WIDTH,
+              minWidth: SIDEBAR_WIDTH,
+              maxWidth: SIDEBAR_WIDTH,
               paddingTop: 16,
+              paddingHorizontal: 0,
               alignItems: 'center'
             }
           : {
