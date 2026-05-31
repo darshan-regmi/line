@@ -347,9 +347,9 @@ service firebase.storage {
 - [x] Firestore security rules and composite indexes deployed
 - [x] Dark-mode brand icon set
 
-### Phase 2: Polish & Engagement (In Progress)
+### Phase 2: Polish & Engagement — In-app pieces complete, push delivery pending
 
-**Social graph (extends Phase 1 services with UI)** ✅
+**Social graph** ✅
 
 - [x] Other-user profile screen (read-only profile view)
 - [x] Follow / unfollow button + optimistic counter updates
@@ -370,16 +370,19 @@ service firebase.storage {
 - [x] Debounced search input (300ms) with empty + loading states
 - [ ] **Limitation:** Firestore only supports prefix matching, not fuzzy / substring search. A backfill script (`npm run backfill-search`) is required for docs created before the lowercase fields were added. Real fuzzy search needs Algolia or Typesense → Phase 3 decision.
 
-**Notifications** (not started — heavy infra)
+**Discovery** ✅
 
-- [ ] Firebase Cloud Messaging integration (push tokens stored in Firestore)
-- [ ] Real-time notification doc writes on like / comment / follow
-- [ ] Notification center UI
-- **Blockers:** requires Firebase Blaze plan (paid) for Cloud Functions, an APNs cert from Apple Developer, and a development build (no Expo Go).
+- [x] Personalized home feed: posts from people you follow, with fallback to global latest when not following anyone
+- [x] "Suggested for you" section on Explore: top accounts by followers excluding self + already-followed
+- [x] Real-time follows list (`useFollowingUids` via `onSnapshot`) so suggestions and feed refresh on follow/unfollow
 
-**Discovery** (not started)
+**Notifications** — in-app complete; push delivery pending
 
-- [ ] User recommendations based on follow graph + activity
+- [x] Real-time notification doc writes on like / comment / follow (best-effort, client-driven, no Cloud Function needed)
+- [x] Notification center UI: bell button + unread badge + screen with mark-all-read on focus
+- [x] Firestore rule carve-out so any signed-in user can write to a recipient's inbox without reading it
+- [ ] Firebase Cloud Messaging integration (push tokens, lock-screen banners)
+- **Push blockers:** requires Firebase Blaze plan (paid) for Cloud Functions, an APNs cert from Apple Developer, and a development build (no Expo Go).
 
 ### Phase 3: Scale & Community
 
@@ -495,4 +498,4 @@ Line is built with the belief that **poetry deserves a beautiful platform**. Eve
 
 **Made with 💚 by Darshan Regmi**
 
-_Last updated: May 2026 — Phase 1 MVP complete; Phase 2 social graph + real-time + sharing + search shipped; notifications + recommendations remaining_
+_Last updated: May 2026 — Phase 1 complete; Phase 2 in-app features all shipped (social, real-time, sharing, search, recommendations, in-app notifications). Only FCM push delivery pending (paid infra)._
