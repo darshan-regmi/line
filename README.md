@@ -349,35 +349,37 @@ service firebase.storage {
 
 ### Phase 2: Polish & Engagement (In Progress)
 
-**Social graph (extends Phase 1 services with UI)**
+**Social graph (extends Phase 1 services with UI)** ✅
 
-- [ ] Other-user profile screen (read-only profile view)
-- [ ] Follow / unfollow button + live counter updates
-- [ ] Trending Explore tab (`posts` sorted by `likesCount` DESC)
+- [x] Other-user profile screen (read-only profile view)
+- [x] Follow / unfollow button + optimistic counter updates
+- [x] Trending Explore tab (`posts` sorted by `likesCount` DESC)
 
-**Real-time UX**
+**Real-time UX** ✅
 
-- [ ] `onSnapshot` listeners on home feed
-- [ ] `onSnapshot` listeners on comments in PostDetail
-- [ ] Animated heart bounce on like
-- [ ] "View likes" modal listing users who liked a post
-- [ ] Comment like / unlike
+- [x] `onSnapshot` listeners on home + explore feed (first page only)
+- [x] `onSnapshot` listeners on comments in PostDetail
+- [x] Animated heart bounce on like (spring scale 1.0 → 1.4 → 1.0)
+- [x] "View likes" modal listing users who liked a post
+- [x] Comment like / unlike (with own rule carve-out)
 
-**Sharing & search**
+**Sharing & search** ✅
 
-- [ ] Native share sheet (`expo-sharing`) for posts
-- [ ] Basic prefix search on `usernameLower` / `titleLower` fields
-- [ ] Debounced search input with empty + loading states
+- [x] Native share sheet for posts (React Native built-in `Share`, not `expo-sharing` — text content, not files)
+- [x] Basic prefix search on `usernameLower` / `titleLower` fields
+- [x] Debounced search input (300ms) with empty + loading states
+- [ ] **Limitation:** Firestore only supports prefix matching, not fuzzy / substring search. A backfill script (`npm run backfill-search`) is required for docs created before the lowercase fields were added. Real fuzzy search needs Algolia or Typesense → Phase 3 decision.
 
-**Notifications**
+**Notifications** (not started — heavy infra)
 
 - [ ] Firebase Cloud Messaging integration (push tokens stored in Firestore)
 - [ ] Real-time notification doc writes on like / comment / follow
 - [ ] Notification center UI
+- **Blockers:** requires Firebase Blaze plan (paid) for Cloud Functions, an APNs cert from Apple Developer, and a development build (no Expo Go).
 
-**Discovery**
+**Discovery** (not started)
 
-- [ ] User recommendations based on follow graph and activity
+- [ ] User recommendations based on follow graph + activity
 
 ### Phase 3: Scale & Community
 
@@ -493,4 +495,4 @@ Line is built with the belief that **poetry deserves a beautiful platform**. Eve
 
 **Made with 💚 by Darshan Regmi**
 
-_Last updated: May 2026 — Phase 1 MVP complete, Phase 2 in progress_
+_Last updated: May 2026 — Phase 1 MVP complete; Phase 2 social graph + real-time + sharing + search shipped; notifications + recommendations remaining_
