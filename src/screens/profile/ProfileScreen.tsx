@@ -97,6 +97,15 @@ export const ProfileScreen = (): ReactElement => {
         >
           <Text style={styles.signOutBtnText}>Sign out</Text>
         </Pressable>
+        <View style={styles.legalRow}>
+          <Text style={styles.legalLink} onPress={() => nav.navigate('Privacy')}>
+            Privacy
+          </Text>
+          <Text style={styles.legalSep}> · </Text>
+          <Text style={styles.legalLink} onPress={() => nav.navigate('Terms')}>
+            Terms
+          </Text>
+        </View>
       </View>
 
       {user ? <CollectionsSection ownerUid={user.uid} viewerUid={user.uid} /> : null}
@@ -190,6 +199,14 @@ const styles = StyleSheet.create({
     minHeight: 44
   },
   signOutBtnText: { color: colors.accent, fontSize: 14, fontWeight: '600' },
+  legalRow: {
+    flexBasis: '100%',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    paddingTop: 12
+  },
+  legalLink: { color: colors.textSecondary, fontSize: 12, fontWeight: '600' },
+  legalSep: { color: colors.textSecondary, fontSize: 12 },
 
   sectionLabel: {
     color: colors.textSecondary,

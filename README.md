@@ -425,6 +425,13 @@ service firebase.storage {
 - [x] Direct messaging (1:1 DMs) — text-only, real-time, with unread counts. Thread id is `sortedUids.join('_')` so the same pair always maps to the same envelope. Entry: chat icon in Home top bar + Message button on UserProfile. Blocked users' threads are hidden client-side, mirroring the rest of the block model.
 - [x] Comment reporting + comment-author blocking — long-press a comment to open the action menu; reporting reuses the ReportSheet with `targetType: 'comment'`; blocking flows through the same `blockUser` service. Blocked authors' comments are filtered out of PostDetail in addition to feeds/notifications.
 
+**Launch readiness** (in progress)
+
+- [x] Privacy Policy + Terms of Service screens — full plain-English policies under `src/screens/legal/`, linked from the LoginScreen footer ("By continuing you agree to…") and the Profile screen ("Privacy · Terms" row). Both routes mounted on `AuthStack` and `MainStack` so signed-out users can read them before signup. Effective date stamped, contact email included.
+- [ ] Username uniqueness — `/usernames/{lower}` claim collection + signup pre-check
+- [ ] Account deletion — irreversible self-serve deletion from Edit Profile
+- [ ] APK distribution — sideload build profile + install instructions for website hosting
+
 ---
 
 ## 🤝 Contributing

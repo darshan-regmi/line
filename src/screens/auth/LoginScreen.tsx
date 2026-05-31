@@ -1,3 +1,5 @@
+import { useNavigation } from '@react-navigation/native'
+import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import * as WebBrowser from 'expo-web-browser'
 import {
   createUserWithEmailAndPassword,
@@ -22,13 +24,17 @@ import {
 } from 'react-native'
 
 import { auth } from '../../config/firebase'
+import { AuthStackParamList } from '../../navigation/AuthStack'
 import { setPendingSignup } from '../../services/userService'
 import { colors } from '../../utils/colorScheme'
 import * as Google from 'expo-auth-session/providers/google'
 
+type Nav = NativeStackNavigationProp<AuthStackParamList>
+
 WebBrowser.maybeCompleteAuthSession()
 
 export const AuthScreen = () => {
+  const nav = useNavigation<Nav>()
   const [isLogin, setIsLogin] = useState(true)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -350,6 +356,20 @@ export const AuthScreen = () => {
             </Pressable>
           </Animated.View>
         </View>
+
+        <View style={styles.legalRow}>
+          <Text style={styles.legalText}>
+            By continuing, you agree to our{' '}
+            <Text style={styles.legalLink} onPress={() => nav.navigate('Terms')}>
+              Terms
+            </Text>{' '}
+            and{' '}
+            <Text style={styles.legalLink} onPress={() => nav.navigate('Privacy')}>
+              Privacy Policy
+            </Text>
+            .
+          </Text>
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   )
@@ -477,5 +497,21 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 14,
     fontWeight: '500'
+  },
+  legalRow: {
+    paddingHorizontal: 24,
+    paddingTop: 12,
+    paddingBottom: 32,
+    alignItems: 'center'
+  },
+  legalText: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    textAlign: 'center',
+    lineHeight: 18
+  },
+  legalLink: {
+    color: colors.primary,
+    fontWeight: '600'
   }
 })
