@@ -18,6 +18,7 @@ import { MainStackParamList } from '../../navigation/MainStack'
 import { hydrateBookmarkedPosts } from '../../services/bookmarkService'
 import { Post } from '../../types'
 import { colors } from '../../utils/colorScheme'
+import { useContentStyle } from '../../utils/responsive'
 
 type Nav = NativeStackNavigationProp<MainStackParamList>
 
@@ -27,6 +28,7 @@ export const SavedScreen = (): ReactElement => {
 
   const [posts, setPosts] = useState<Post[]>([])
   const [hydrating, setHydrating] = useState(false)
+  const contentStyle = useContentStyle()
 
   // Hydrate the bookmarked postIds into full Post docs. Re-runs when the
   // set of ids changes — same stable key trick as elsewhere.
@@ -65,7 +67,7 @@ export const SavedScreen = (): ReactElement => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
+      <View style={[styles.header, contentStyle]}>
         <Pressable onPress={() => nav.goBack()} hitSlop={10}>
           <Text style={styles.back}>← Back</Text>
         </Pressable>
@@ -82,7 +84,7 @@ export const SavedScreen = (): ReactElement => {
           data={posts}
           keyExtractor={(item) => item.postId}
           renderItem={renderItem}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={[styles.list, contentStyle]}
           ListEmptyComponent={
             <View style={styles.empty}>
               <Text style={styles.emptyTitle}>No saved poems yet</Text>

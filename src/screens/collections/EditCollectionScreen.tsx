@@ -25,6 +25,7 @@ import {
   updateCollection
 } from '../../services/collectionService'
 import { colors } from '../../utils/colorScheme'
+import { useContentStyle } from '../../utils/responsive'
 
 type R = RouteProp<MainStackParamList, 'EditCollection'>
 type Nav = NativeStackNavigationProp<MainStackParamList>
@@ -44,6 +45,7 @@ export const EditCollectionScreen = (): ReactElement => {
   const [isPublic, setIsPublic] = useState(true)
   const [loading, setLoading] = useState(isEdit)
   const [saving, setSaving] = useState(false)
+  const contentStyle = useContentStyle()
 
   // Load existing collection when editing
   useEffect(() => {
@@ -119,7 +121,7 @@ export const EditCollectionScreen = (): ReactElement => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
+      <View style={[styles.header, contentStyle]}>
         <Pressable onPress={() => nav.goBack()} hitSlop={10}>
           <Text style={styles.cancel}>Cancel</Text>
         </Pressable>
@@ -144,7 +146,10 @@ export const EditCollectionScreen = (): ReactElement => {
           style={styles.body}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
-          <ScrollView contentContainerStyle={styles.form} keyboardShouldPersistTaps="handled">
+          <ScrollView
+            contentContainerStyle={[styles.form, contentStyle]}
+            keyboardShouldPersistTaps="handled"
+          >
             <Text style={styles.label}>Title</Text>
             <TextInput
               style={styles.input}

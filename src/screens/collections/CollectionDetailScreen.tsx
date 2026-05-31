@@ -20,6 +20,7 @@ import { getCollection, getCollectionPostIds } from '../../services/collectionSe
 import { Collection, Post } from '../../types'
 import { colors } from '../../utils/colorScheme'
 import { pluralize } from '../../utils/formatters'
+import { useContentStyle } from '../../utils/responsive'
 
 type R = RouteProp<MainStackParamList, 'CollectionDetail'>
 type Nav = NativeStackNavigationProp<MainStackParamList>
@@ -33,6 +34,7 @@ export const CollectionDetailScreen = (): ReactElement => {
   const [collection, setCollection] = useState<Collection | null>(null)
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
+  const contentStyle = useContentStyle()
 
   const reload = useCallback(async () => {
     setLoading(true)
@@ -84,7 +86,7 @@ export const CollectionDetailScreen = (): ReactElement => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.topBar}>
+      <View style={[styles.topBar, contentStyle]}>
         <Pressable onPress={() => nav.goBack()} hitSlop={10}>
           <Text style={styles.back}>← Back</Text>
         </Pressable>
@@ -107,7 +109,7 @@ export const CollectionDetailScreen = (): ReactElement => {
           keyExtractor={(item) => item.postId}
           renderItem={renderItem}
           ListHeaderComponent={header}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={[styles.list, contentStyle]}
           ListEmptyComponent={
             <Text style={styles.empty}>
               {isOwner

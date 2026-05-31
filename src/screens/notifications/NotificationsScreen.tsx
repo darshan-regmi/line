@@ -19,6 +19,7 @@ import { MainStackParamList } from '../../navigation/MainStack'
 import { markAllNotificationsRead } from '../../services/notificationService'
 import { Notification } from '../../types'
 import { colors } from '../../utils/colorScheme'
+import { useContentStyle } from '../../utils/responsive'
 
 type Nav = NativeStackNavigationProp<MainStackParamList>
 
@@ -26,6 +27,7 @@ export const NotificationsScreen = (): ReactElement => {
   const nav = useNavigation<Nav>()
   const { user } = useAuth()
   const { notifications, loading, unreadCount } = useNotifications()
+  const contentStyle = useContentStyle()
 
   // Mark everything read when the screen comes into focus.
   // Best-effort — failure is silently ignored.
@@ -59,7 +61,7 @@ export const NotificationsScreen = (): ReactElement => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
+      <View style={[styles.header, contentStyle]}>
         <Pressable onPress={() => nav.goBack()} hitSlop={10}>
           <Text style={styles.back}>← Back</Text>
         </Pressable>
@@ -76,6 +78,7 @@ export const NotificationsScreen = (): ReactElement => {
           data={notifications}
           keyExtractor={(n) => n.notificationId}
           renderItem={renderItem}
+          contentContainerStyle={contentStyle ?? undefined}
           ListEmptyComponent={
             <View style={styles.empty}>
               <Text style={styles.emptyTitle}>No notifications yet</Text>

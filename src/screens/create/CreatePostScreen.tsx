@@ -17,6 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAuth } from '../../context/AuthContext'
 import { createPost } from '../../services/postService'
 import { colors } from '../../utils/colorScheme'
+import { useContentStyle } from '../../utils/responsive'
 
 const TITLE_MAX = 100
 const CONTENT_MAX = 2000
@@ -27,6 +28,7 @@ export const CreatePostScreen = (): ReactElement => {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const contentStyle = useContentStyle()
 
   const canSubmit = title.trim().length > 0 && content.trim().length > 0 && !submitting
 
@@ -52,7 +54,7 @@ export const CreatePostScreen = (): ReactElement => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
+      <View style={[styles.header, contentStyle]}>
         <Pressable onPress={() => nav.goBack()} hitSlop={10}>
           <Text style={styles.cancel}>Cancel</Text>
         </Pressable>
@@ -70,7 +72,10 @@ export const CreatePostScreen = (): ReactElement => {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.body}
       >
-        <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.scroll}>
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={[styles.scroll, contentStyle]}
+        >
           <TextInput
             style={styles.titleInput}
             placeholder="Title"

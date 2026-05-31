@@ -18,6 +18,7 @@ import { useAuth } from '../../context/AuthContext'
 import { invalidateUserCache, useUser } from '../../hooks/useUser'
 import { updateUser } from '../../services/userService'
 import { colors } from '../../utils/colorScheme'
+import { useContentStyle } from '../../utils/responsive'
 
 const BIO_MAX = 160
 
@@ -29,6 +30,7 @@ export const EditProfileScreen = (): ReactElement => {
   const [displayName, setDisplayName] = useState('')
   const [bio, setBio] = useState('')
   const [saving, setSaving] = useState(false)
+  const contentStyle = useContentStyle()
 
   useEffect(() => {
     if (profile) {
@@ -59,7 +61,7 @@ export const EditProfileScreen = (): ReactElement => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
+      <View style={[styles.header, contentStyle]}>
         <Pressable onPress={() => nav.goBack()} hitSlop={10}>
           <Text style={styles.cancel}>Cancel</Text>
         </Pressable>
@@ -82,7 +84,10 @@ export const EditProfileScreen = (): ReactElement => {
           style={styles.body}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
-          <ScrollView contentContainerStyle={styles.form} keyboardShouldPersistTaps="handled">
+          <ScrollView
+            contentContainerStyle={[styles.form, contentStyle]}
+            keyboardShouldPersistTaps="handled"
+          >
             <Text style={styles.label}>Display name</Text>
             <TextInput
               style={styles.input}

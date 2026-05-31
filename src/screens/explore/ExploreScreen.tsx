@@ -26,6 +26,7 @@ import { searchPosts } from '../../services/postService'
 import { getSuggestedUsers, searchUsers } from '../../services/userService'
 import { Post, UserProfile } from '../../types'
 import { colors } from '../../utils/colorScheme'
+import { useContentStyle } from '../../utils/responsive'
 
 type Nav = NativeStackNavigationProp<MainStackParamList>
 
@@ -46,6 +47,8 @@ export const ExploreScreen = (): ReactElement => {
 
   const [suggested, setSuggested] = useState<UserProfile[]>([])
   const [suggestedLoading, setSuggestedLoading] = useState(false)
+
+  const contentStyle = useContentStyle()
 
   const trimmed = searchQuery.trim()
   const searchActive = trimmed.length > 0
@@ -123,7 +126,7 @@ export const ExploreScreen = (): ReactElement => {
   // keystroke.
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
+      <View style={[styles.header, contentStyle]}>
         <Text style={styles.heading}>Explore</Text>
         <TextInput
           style={styles.searchInput}
@@ -140,7 +143,7 @@ export const ExploreScreen = (): ReactElement => {
 
       {searchActive ? (
         <ScrollView
-          contentContainerStyle={styles.searchScroll}
+          contentContainerStyle={[styles.searchScroll, contentStyle]}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
         >
@@ -201,7 +204,7 @@ export const ExploreScreen = (): ReactElement => {
           data={posts}
           keyExtractor={(item) => item.postId}
           renderItem={renderTrending}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={[styles.list, contentStyle]}
           onEndReached={loadMore}
           onEndReachedThreshold={0.4}
           keyboardShouldPersistTaps="handled"

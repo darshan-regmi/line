@@ -21,6 +21,7 @@ import { MainStackParamList } from '../../navigation/MainStack'
 import { getUserPosts } from '../../services/postService'
 import { Post } from '../../types'
 import { colors } from '../../utils/colorScheme'
+import { useContentStyle } from '../../utils/responsive'
 
 type Nav = NativeStackNavigationProp<MainStackParamList>
 
@@ -28,6 +29,7 @@ export const ProfileScreen = (): ReactElement => {
   const nav = useNavigation<Nav>()
   const { user, signOut } = useAuth()
   const { user: profile, loading: profileLoading } = useUser(user?.uid)
+  const contentStyle = useContentStyle()
 
   const [posts, setPosts] = useState<Post[]>([])
   const [postsLoading, setPostsLoading] = useState(true)
@@ -121,7 +123,7 @@ export const ProfileScreen = (): ReactElement => {
           keyExtractor={(item) => item.postId}
           renderItem={renderItem}
           ListHeaderComponent={header}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={[styles.list, contentStyle]}
           ListEmptyComponent={
             postsLoading ? (
               <ActivityIndicator color={colors.textSecondary} style={{ marginTop: 24 }} />

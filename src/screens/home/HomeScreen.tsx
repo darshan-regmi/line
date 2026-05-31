@@ -20,6 +20,7 @@ import { useNotifications } from '../../hooks/useNotifications'
 import { MainStackParamList } from '../../navigation/MainStack'
 import { Post } from '../../types'
 import { colors } from '../../utils/colorScheme'
+import { useContentStyle } from '../../utils/responsive'
 
 type Nav = NativeStackNavigationProp<MainStackParamList>
 
@@ -32,6 +33,7 @@ export const HomeScreen = (): ReactElement => {
   const { uids: followedUids, loading: followsLoading } = useFollowingUids()
   const personalized = followedUids.length > 0
   const { unreadCount } = useNotifications()
+  const contentStyle = useContentStyle()
 
   const { posts, loading, refreshing, hasMore, error, refresh, loadMore, replacePost } = useFeed(
     personalized ? 'following' : 'latest',
@@ -52,7 +54,7 @@ export const HomeScreen = (): ReactElement => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
+      <View style={[styles.header, contentStyle]}>
         <View style={styles.headerRow}>
           <View style={{ flex: 1 }}>
             <Text style={styles.heading}>Line</Text>
@@ -84,7 +86,7 @@ export const HomeScreen = (): ReactElement => {
           data={posts}
           keyExtractor={(item) => item.postId}
           renderItem={renderItem}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={[styles.list, contentStyle]}
           onEndReached={loadMore}
           onEndReachedThreshold={0.4}
           refreshControl={

@@ -26,6 +26,7 @@ import { blockUser, unblockUser } from '../../services/blockService'
 import { getUserPosts } from '../../services/postService'
 import { Post } from '../../types'
 import { colors } from '../../utils/colorScheme'
+import { useContentStyle } from '../../utils/responsive'
 
 type R = RouteProp<MainStackParamList, 'UserProfile'>
 type Nav = NativeStackNavigationProp<MainStackParamList>
@@ -40,6 +41,7 @@ export const UserProfileScreen = (): ReactElement => {
   const { user: profile, loading: profileLoading } = useUser(targetUid)
   const { idSet: blockedSet } = useBlockedUids()
   const isBlocked = blockedSet.has(targetUid)
+  const contentStyle = useContentStyle()
 
   const [posts, setPosts] = useState<Post[]>([])
   const [postsLoading, setPostsLoading] = useState(true)
@@ -170,7 +172,7 @@ export const UserProfileScreen = (): ReactElement => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.topBar}>
+      <View style={[styles.topBar, contentStyle]}>
         <Pressable onPress={() => nav.goBack()} hitSlop={10}>
           <Text style={styles.back}>← Back</Text>
         </Pressable>
@@ -200,7 +202,7 @@ export const UserProfileScreen = (): ReactElement => {
           keyExtractor={(item) => item.postId}
           renderItem={renderItem}
           ListHeaderComponent={header}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={[styles.list, contentStyle]}
           ListEmptyComponent={
             postsLoading ? (
               <ActivityIndicator color={colors.textSecondary} style={{ marginTop: 24 }} />

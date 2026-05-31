@@ -35,6 +35,7 @@ import { incrementPostView, toggleLike } from '../../services/postService'
 import { Comment } from '../../types'
 import { colors } from '../../utils/colorScheme'
 import { formatRelativeTime, pluralize } from '../../utils/formatters'
+import { useContentStyle } from '../../utils/responsive'
 
 type R = RouteProp<MainStackParamList, 'PostDetail'>
 type Nav = NativeStackNavigationProp<MainStackParamList>
@@ -57,6 +58,7 @@ export const PostDetailScreen = (): ReactElement => {
   const [reportSheetVisible, setReportSheetVisible] = useState(false)
   const [reportingComment, setReportingComment] = useState<Comment | null>(null)
   const { idSet: blockedSet } = useBlockedUids()
+  const contentStyle = useContentStyle()
 
   const postId = post?.postId
   useEffect(() => {
@@ -266,7 +268,7 @@ export const PostDetailScreen = (): ReactElement => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
+      <View style={[styles.header, contentStyle]}>
         <Pressable onPress={() => nav.goBack()} hitSlop={10}>
           <Text style={styles.back}>← Back</Text>
         </Pressable>
@@ -292,7 +294,7 @@ export const PostDetailScreen = (): ReactElement => {
           keyExtractor={(c) => c.commentId}
           renderItem={renderComment}
           ListHeaderComponent={header}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={[styles.list, contentStyle]}
           ListEmptyComponent={
             commentsLoading ? (
               <ActivityIndicator color={colors.textSecondary} style={{ marginTop: 16 }} />
@@ -302,7 +304,7 @@ export const PostDetailScreen = (): ReactElement => {
           }
         />
 
-        <View style={styles.composer}>
+        <View style={[styles.composer, contentStyle]}>
           <TextInput
             style={styles.composerInput}
             placeholder="Add a comment..."
