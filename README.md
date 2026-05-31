@@ -209,6 +209,52 @@ posts/{postId}/comments/{commentId}
 
 ---
 
+## 📦 Distribution (Android APK)
+
+Line is distributed as a sideloaded Android APK hosted on the operator's own website. No Google Play Store account is required, and no Apple Developer Program account is used — iOS is intentionally out of scope for this build.
+
+### Build an APK
+
+1. Install the EAS CLI: `npm i -g eas-cli` (one-time).
+2. Sign in: `eas login`.
+3. Initialise the project the first time: `eas build:configure` (project is already pre-configured via `eas.json`; you can skip this if EAS reports it's already set up).
+4. Build the preview APK:
+
+   ```bash
+   eas build --platform android --profile preview
+   ```
+
+   EAS builds in the cloud and prints a download URL when finished. The artifact is a single `.apk` file (not an `.aab`), thanks to `"buildType": "apk"` in `eas.json`.
+
+5. Download the APK and upload it to your website. Recommended path: `https://<your-domain>/line.apk` with a clear "Download for Android" CTA.
+
+### Google OAuth Android client (SHA-1)
+
+The Google sign-in flow needs the SHA-1 fingerprint of the keystore the APK is signed with. EAS uses its managed Android signing key by default, so:
+
+```bash
+eas credentials                # interactive — pick Android → production → Keystore
+```
+
+Copy the printed **SHA-1** and paste it into the Google Cloud Console → APIs & Services → Credentials → Android OAuth client → SHA-1 certificate fingerprints. Save. The corresponding Google client ID goes into `.env.local` as `EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID`. Allow a few minutes for the change to propagate before retesting sign-in.
+
+### Sideload instructions for end users
+
+Users installing an APK from outside Play Store need to opt in once:
+
+1. Visit `https://<your-domain>/line.apk` in Chrome (or any browser) on the device.
+2. Tap the downloaded file. Android will warn "this site / app is not allowed to install unknown apps" the first time.
+3. Tap **Settings**, toggle **Allow from this source**, hit back.
+4. Tap the APK again → **Install** → **Open**.
+
+Subsequent updates from the same domain install without the prompt. There is no auto-update channel; users re-download from the site to upgrade.
+
+### iOS
+
+Not supported in this build. iOS apps cannot legally sideload outside enterprise/dev programs, so shipping iOS would require an Apple Developer Program subscription ($99/year) and either App Store distribution or TestFlight. Both are out of scope.
+
+---
+
 ## 📁 Project Structure
 
 ```
@@ -430,7 +476,7 @@ service firebase.storage {
 - [x] Privacy Policy + Terms of Service screens — full plain-English policies under `src/screens/legal/`, linked from the LoginScreen footer ("By continuing you agree to…") and the Profile screen ("Privacy · Terms" row). Both routes mounted on `AuthStack` and `MainStack` so signed-out users can read them before signup. Effective date stamped, contact email included.
 - [x] Username uniqueness — top-level `/usernames/{lower}` claim collection. Rules: `get` is public (so signup pre-check works pre-auth), `create` only if `uid == request.auth.uid`, `update` denied, `delete` only by the claim owner. `ensureUserDoc` attempts to claim the desired username and falls back to `<email-prefix><uid-suffix>` on collision. The signup form debounces a live availability check (`available / taken / invalid`) with red/green border feedback.
 - [x] Account deletion — `deleteAccount(uid)` in `userService.ts` does a best-effort sweep: unpublishes authored posts (so threads stay readable), wipes the user's bookmarks / blocked / following / followers / notifications subcollections, mirrors follow decrements on the other side, deletes owned collections, releases the `/usernames/{lower}` claim, then deletes `/users/{uid}`. DMs are preserved per the privacy policy. Edit profile screen has a danger-zone double-confirm; on `auth/requires-recent-login` the user is asked to sign in again and retry.
-- [ ] APK distribution — sideload build profile + install instructions for website hosting
+- [x] APK distribution — `eas.json` with a `preview` profile that produces a single signed `.apk` (not `.aab`). README has a full "Distribution (Android APK)" section: cloud build command, where to host the APK on the operator's site, how to pull the keystore SHA-1 for the Google OAuth Android client, end-user sideload steps including the one-time "allow from this source" toggle, and an explicit note that iOS is out of scope (Apple Developer Program would be required).
 
 ---
 
