@@ -19,6 +19,8 @@ import {
 import { db } from '../config/firebase'
 
 import { Message, Thread } from '../types'
+import { sendPushToUser } from './pushService'
+import { getUser } from './userService'
 
 /**
  * Direct messages between two users.
@@ -141,6 +143,20 @@ export const sendMessage = async (
     updatedAt: serverTimestamp()
   })
   await batch.commit()
+
+  // Best-effort push to the recipient. We surface a short preview here
+  // (no E2EE today; messages are plaintext in Firestore, so this is
+  // consistent with existing privacy posture). Push fails silently.
+  try {
+    const sender = await getUser(senderId)
+    const name = sender?.displayName ?? 'Someone'
+    await sendPushToUser(recipientUid, name, trimmed.slice(0, 140), {
+      type: 'dm',
+      threadOtherUid: senderId
+    })
+  } catch {
+    /* best-effort */
+  }
 }
 
 /**

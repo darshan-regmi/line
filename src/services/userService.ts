@@ -58,6 +58,7 @@ export const ensureUserDoc = async (firebaseUser: FirebaseUser): Promise<UserPro
     avatarIndex: Math.floor(Math.random() * 10),
     followersCount: 0,
     followingCount: 0,
+    expoPushTokens: [],
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp()
   })
@@ -81,6 +82,7 @@ export const getUser = async (uid: string): Promise<UserProfile | null> => {
     avatarIndex: data.avatarIndex ?? 0,
     followersCount: data.followersCount ?? 0,
     followingCount: data.followingCount ?? 0,
+    expoPushTokens: data.expoPushTokens ?? [],
     createdAt: data.createdAt ?? null,
     updatedAt: data.updatedAt ?? null
   }
@@ -159,6 +161,7 @@ const userFromQueryDoc = (snap: { id: string; data: () => any }): UserProfile =>
     avatarIndex: data.avatarIndex ?? 0,
     followersCount: data.followersCount ?? 0,
     followingCount: data.followingCount ?? 0,
+    expoPushTokens: data.expoPushTokens ?? [],
     createdAt: data.createdAt ?? null,
     updatedAt: data.updatedAt ?? null
   }

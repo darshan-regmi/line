@@ -260,6 +260,16 @@ components:
     padding: "12px 16px"
     avatar: 48px
     badge: "{components.badge-unread}"
+  push-notification:
+    delivery: "Expo HTTP Push API (https://exp.host/--/api/v2/push/send)"
+    trigger: "Client-direct from the actor; no Cloud Function (Firebase Spark friendly)"
+    tokens: "Stored as users.expoPushTokens (array). arrayUnion on register, arrayRemove on sign-out."
+    androidChannel: "default importance, lightColor {colors.primary}"
+    limitations:
+      - "iOS push requires a development build (Apple constraint, not Firebase)"
+      - "Apple Developer Program (paid) required for iOS APNs key"
+      - "Tokens are readable by any signed-in user (rules already permit user-doc reads). MVP acceptable; production would hide behind a server."
+      - "Sender-offline => no push (in-app notification doc still lands)"
 ---
 
 ## Overview

@@ -1,12 +1,19 @@
-import { DarkTheme, NavigationContainer } from '@react-navigation/native'
-import React, { ReactElement } from 'react'
+import {
+  createNavigationContainerRef,
+  DarkTheme,
+  NavigationContainer
+} from '@react-navigation/native'
+import React, { ReactElement, useCallback } from 'react'
 import { ActivityIndicator, StyleSheet, View } from 'react-native'
 
 import { useAuth } from '../context/AuthContext'
+import { NavigateTarget, usePushRegistration } from '../hooks/usePushRegistration'
 import { colors } from '../utils/colorScheme'
 
 import { AuthStack } from './AuthStack'
-import { MainStack } from './MainStack'
+import { MainStack, MainStackParamList } from './MainStack'
+
+const navigationRef = createNavigationContainerRef<MainStackParamList>()
 
 const navTheme = {
   ...DarkTheme,
@@ -23,6 +30,27 @@ const navTheme = {
 export const AppNavigator = (): ReactElement => {
   const { user, initializing } = useAuth()
 
+  // Push tap handler. Stable across re-renders so the listener inside
+  // usePushRegistration doesn't churn.
+  const handlePushNav = useCallback((target: NavigateTarget) => {
+    if (!navigationRef.isReady()) return
+    switch (target.screen) {
+      case 'PostDetail':
+        navigationRef.navigate('PostDetail', { postId: target.postId })
+        break
+      case 'UserProfile':
+        navigationRef.navigate('UserProfile', { userId: target.userId })
+        break
+      case 'ThreadDetail':
+        navigationRef.navigate('ThreadDetail', { otherUid: target.otherUid })
+        break
+    }
+  }, [])
+
+  // Registers the device's Expo push token to the signed-in user's doc
+  // and wires the tap-to-navigate handler. Runs across the whole app.
+  usePushRegistration(handlePushNav)
+
   if (initializing) {
     return (
       <View style={styles.splash}>
@@ -32,7 +60,7 @@ export const AppNavigator = (): ReactElement => {
   }
 
   return (
-    <NavigationContainer theme={navTheme}>
+    <NavigationContainer ref={navigationRef} theme={navTheme}>
       {user ? <MainStack /> : <AuthStack />}
     </NavigationContainer>
   )

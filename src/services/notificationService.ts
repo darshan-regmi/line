@@ -16,6 +16,14 @@ import {
 import { db } from '../config/firebase'
 
 import { Notification, NotificationType } from '../types'
+import { sendPushToUser } from './pushService'
+import { getUser } from './userService'
+
+const verbForType: Record<NotificationType, string> = {
+  like: 'liked your poem',
+  comment: 'commented on your poem',
+  follow: 'started following you'
+}
 
 const notificationFromDoc = (snap: QueryDocumentSnapshot): Notification => {
   const data = snap.data()
@@ -59,6 +67,22 @@ export const createNotification = async (input: {
     await addDoc(collection(db, 'users', input.recipientUid, 'notifications'), payload)
   } catch {
     // Non-fatal: notification write may fail offline or due to rules drift
+  }
+
+  // Fire push to the recipient's devices, best-effort. Looks up the
+  // actor's displayName to compose a friendly banner. Failures are silent
+  // and never block the action.
+  try {
+    const actor = await getUser(input.actorUid)
+    const name = actor?.displayName ?? 'Someone'
+    await sendPushToUser(input.recipientUid, 'Line', `${name} ${verbForType[input.type]}`, {
+      type: input.type,
+      postId: input.postId,
+      commentId: input.commentId,
+      actorUid: input.actorUid
+    })
+  } catch {
+    /* best-effort */
   }
 }
 

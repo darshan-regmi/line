@@ -10,6 +10,8 @@ export type UserProfile = {
   avatarIndex: number
   followersCount: number
   followingCount: number
+  /** Expo push tokens for each device the user has signed in on */
+  expoPushTokens: string[]
   createdAt: Timestamp | null
   updatedAt: Timestamp | null
 }

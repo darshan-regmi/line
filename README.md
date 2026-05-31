@@ -421,7 +421,7 @@ service firebase.storage {
 - [x] Content moderation — report sheet for posts and users; write-only `/reports` collection (clients can't read, update, or delete); seven structured reason codes plus optional 280-char note. Reviewed by admins through Firebase Console.
 - [x] User blocking — `/users/{uid}/blocked/{blockedUid}` strictly-private subcollection; action menu (`Alert.alert`) on PostDetail and UserProfile lets you Block / Unblock / Report; blocked users' posts vanish from Home and Explore feeds, their notifications are hidden from your inbox, and their profile renders a "Blocked" state with an unblock CTA.
   - **Limitation:** filtering is one-way client-side. A blocked user can still see your content and write actions toward you; their writes just don't surface in your client. True mutual blocking needs rule-level enforcement (Phase 4).
-- [ ] FCM push delivery (deferred from Phase 2 — needs Blaze + APNs + dev build)
+- [x] Push notifications via Expo's free HTTP push API (Firebase Spark friendly). Actor's client triggers the push directly to the recipient's tokens — no Cloud Function. Wired from `createNotification` (like / comment / follow) and `sendMessage` (DMs). Notification taps deep-link into PostDetail / UserProfile / ThreadDetail. **iOS requires a dev build + Apple Developer Program ($99/year, Apple's charge — not Firebase).** Android works without further cost.
 - [x] Direct messaging (1:1 DMs) — text-only, real-time, with unread counts. Thread id is `sortedUids.join('_')` so the same pair always maps to the same envelope. Entry: chat icon in Home top bar + Message button on UserProfile. Blocked users' threads are hidden client-side, mirroring the rest of the block model.
 - [x] Comment reporting + comment-author blocking — long-press a comment to open the action menu; reporting reuses the ReportSheet with `targetType: 'comment'`; blocking flows through the same `blockUser` service. Blocked authors' comments are filtered out of PostDetail in addition to feeds/notifications.
 
@@ -531,4 +531,4 @@ Line is built with the belief that **poetry deserves a beautiful platform**. Eve
 
 **Made with 💚 by Darshan Regmi**
 
-_Last updated: May 2026 — Phase 1 + Phase 2 (in-app) complete. Phase 3 shipped: view counts, bookmarks, collections, moderation, user blocking, design system (DESIGN.md), responsive layout with desktop sidebar, Ionicons migration, DiceBear avatars, UX polish (toasts + skeletons), and 1:1 DMs. Only FCM push delivery remains (infra-blocked)._
+_Last updated: May 2026 — Phase 1 + Phase 2 (in-app) complete. Phase 3 shipped end-to-end: view counts, bookmarks, collections, moderation, user blocking, design system (DESIGN.md), responsive layout with desktop sidebar, Ionicons migration, DiceBear avatars, UX polish (toasts + skeletons), 1:1 DMs, and push notifications (Android works on Spark; iOS needs Apple Developer membership)._
