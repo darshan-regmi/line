@@ -180,5 +180,33 @@ service cloud.firestore {
         && next.size() == cur.size() + (nowLiked ? 1 : -1)
         && request.resource.data.likesCount == resource.data.likesCount + (nowLiked ? 1 : -1);
     }
+
+    // ─── Collections ─────────────────────────────────────────────────
+    // Top-level collection docs. Each one belongs to a single owner (the
+    // curator). Reads are public when isPublic == true; private collections
+    // are only readable by their owner.
+    match /collections/{collectionId} {
+      allow read: if resource.data.isPublic == true || isSelf(resource.data.ownerId);
+
+      allow create: if isAuthed()
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.postCount == 0;
+
+      allow update: if isSelf(resource.data.ownerId);
+      allow delete: if isSelf(resource.data.ownerId);
+
+      // Subcollection of post references inside a collection.
+      // Body holds addedAt; doc id == postId so add/remove is O(1).
+      match /posts/{postId} {
+        // Inherit visibility from the parent collection
+        allow read: if get(/databases/$(database)/documents/collections/$(collectionId)).data.isPublic == true
+          || isSelf(get(/databases/$(database)/documents/collections/$(collectionId)).data.ownerId);
+
+        // Only the owner can add or remove posts
+        allow create, update, delete: if isSelf(
+          get(/databases/$(database)/documents/collections/$(collectionId)).data.ownerId
+        );
+      }
+    }
   }
 }

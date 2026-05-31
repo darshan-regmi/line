@@ -32,6 +32,14 @@
         { "fieldPath": "isPublished", "order": "ASCENDING" },
         { "fieldPath": "titleLower", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "collections",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "ownerId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

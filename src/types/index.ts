@@ -37,6 +37,17 @@ export type Comment = {
   createdAt: Timestamp | null
 }
 
+export type Collection = {
+  collectionId: string
+  ownerId: string
+  title: string
+  description: string
+  isPublic: boolean
+  postCount: number
+  createdAt: Timestamp | null
+  updatedAt: Timestamp | null
+}
+
 export type NotificationType = 'like' | 'comment' | 'follow'
 
 export type Notification = {

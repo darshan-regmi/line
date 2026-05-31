@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { Avatar } from '../../components/Avatar'
+import { CollectionsSection } from '../../components/CollectionsSection'
 import { FollowButton } from '../../components/FollowButton'
 import { PostCard } from '../../components/PostCard'
 import { useAuth } from '../../context/AuthContext'
@@ -102,6 +103,8 @@ export const UserProfileScreen = (): ReactElement => {
           />
         )}
       </View>
+
+      <CollectionsSection ownerUid={targetUid} viewerUid={currentUser?.uid} />
 
       <Text style={styles.sectionLabel}>Poems</Text>
     </View>

@@ -399,6 +399,7 @@ service firebase.storage {
 **Curation continued** ✅
 
 - [x] Bookmarks / saved poems — strictly-private subcollection; star icon on PostCard + PostDetail; "Saved" entry from the Profile screen
+- [x] Poetry collections — top-level `/collections` with per-collection post subcollection; create/edit/delete; public/private toggle; "Add to collection" bottom sheet from PostDetail; horizontal collections strip on Profile (own) and UserProfile (others' public). New `collections(ownerId, createdAt)` composite index.
 
 **Operations & growth** (not started)
 
@@ -511,4 +512,4 @@ Line is built with the belief that **poetry deserves a beautiful platform**. Eve
 
 **Made with 💚 by Darshan Regmi**
 
-_Last updated: May 2026 — Phase 1 and Phase 2 (in-app) complete. Phase 3 underway: view counts + bookmarks shipped; collections, DMs, moderation queued._
+_Last updated: May 2026 — Phase 1 and Phase 2 (in-app) complete. Phase 3 underway: view counts + bookmarks + collections shipped; DMs and moderation queued._

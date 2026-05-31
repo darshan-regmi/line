@@ -17,6 +17,7 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
+import { AddToCollectionSheet } from '../../components/AddToCollectionSheet'
 import { Avatar } from '../../components/Avatar'
 import { BookmarkButton } from '../../components/BookmarkButton'
 import { CommentItem } from '../../components/CommentItem'
@@ -49,6 +50,7 @@ export const PostDetailScreen = (): ReactElement => {
   const [posting, setPosting] = useState(false)
   const [likeBusy, setLikeBusy] = useState(false)
   const [likesModalVisible, setLikesModalVisible] = useState(false)
+  const [collectionSheetVisible, setCollectionSheetVisible] = useState(false)
 
   const postId = post?.postId
   useEffect(() => {
@@ -194,6 +196,15 @@ export const PostDetailScreen = (): ReactElement => {
           <Text style={styles.actionText}>{post.commentsCount}</Text>
         </View>
         <View style={{ flex: 1 }} />
+        {user ? (
+          <Pressable
+            onPress={() => setCollectionSheetVisible(true)}
+            hitSlop={8}
+            style={({ pressed }) => [styles.action, pressed && { opacity: 0.6 }]}
+          >
+            <Text style={[styles.actionIcon, { fontSize: 20 }]}>📚</Text>
+          </Pressable>
+        ) : null}
         <BookmarkButton postId={post.postId} size={22} />
       </View>
 
@@ -269,6 +280,16 @@ export const PostDetailScreen = (): ReactElement => {
         onUserPress={(uid) => {
           setLikesModalVisible(false)
           nav.navigate('UserProfile', { userId: uid })
+        }}
+      />
+
+      <AddToCollectionSheet
+        visible={collectionSheetVisible}
+        postId={post.postId}
+        onClose={() => setCollectionSheetVisible(false)}
+        onCreateNew={() => {
+          setCollectionSheetVisible(false)
+          nav.navigate('EditCollection')
         }}
       />
     </SafeAreaView>

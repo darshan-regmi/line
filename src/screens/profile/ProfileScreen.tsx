@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { Avatar } from '../../components/Avatar'
+import { CollectionsSection } from '../../components/CollectionsSection'
 import { PostCard } from '../../components/PostCard'
 import { useAuth } from '../../context/AuthContext'
 import { invalidateUserCache, useUser } from '../../hooks/useUser'
@@ -101,6 +102,8 @@ export const ProfileScreen = (): ReactElement => {
           <Text style={styles.signOutBtnText}>Sign out</Text>
         </Pressable>
       </View>
+
+      {user ? <CollectionsSection ownerUid={user.uid} viewerUid={user.uid} /> : null}
 
       <Text style={styles.sectionLabel}>Your poems</Text>
     </View>
