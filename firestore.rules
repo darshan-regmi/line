@@ -181,6 +181,21 @@ service cloud.firestore {
         && request.resource.data.likesCount == resource.data.likesCount + (nowLiked ? 1 : -1);
     }
 
+    // ─── Reports ─────────────────────────────────────────────────────
+    // Moderation queue. Any signed-in user can submit a report; nobody
+    // can read, update, or delete from the client. Admins review reports
+    // through the Firebase Console.
+    match /reports/{reportId} {
+      allow create: if isAuthed()
+        && request.resource.data.reporterUid == request.auth.uid
+        && request.resource.data.status == 'open'
+        && request.resource.data.targetType in ['post', 'comment', 'user']
+        && request.resource.data.reason in
+          ['spam', 'harassment', 'hate', 'sexual', 'self_harm', 'misinformation', 'other'];
+
+      allow read, update, delete: if false;
+    }
+
     // ─── Collections ─────────────────────────────────────────────────
     // Top-level collection docs. Each one belongs to a single owner (the
     // curator). Reads are public when isPublic == true; private collections

@@ -401,10 +401,13 @@ service firebase.storage {
 - [x] Bookmarks / saved poems — strictly-private subcollection; star icon on PostCard + PostDetail; "Saved" entry from the Profile screen
 - [x] Poetry collections — top-level `/collections` with per-collection post subcollection; create/edit/delete; public/private toggle; "Add to collection" bottom sheet from PostDetail; horizontal collections strip on Profile (own) and UserProfile (others' public). New `collections(ownerId, createdAt)` composite index.
 
-**Operations & growth** (not started)
+**Operations & growth**
 
-- [ ] Content moderation tools
+- [x] Content moderation — report sheet for posts and users; write-only `/reports` collection (clients can't read, update, or delete); seven structured reason codes plus optional 280-char note. Reviewed by admins through Firebase Console.
 - [ ] FCM push delivery (deferred from Phase 2 — needs Blaze + APNs + dev build)
+- [ ] Direct messaging (1:1 DMs)
+- [ ] User blocking (build on the report flow)
+- [ ] Comment reporting (post + user shipped; comment trigger pending)
 
 ---
 
@@ -512,4 +515,4 @@ Line is built with the belief that **poetry deserves a beautiful platform**. Eve
 
 **Made with 💚 by Darshan Regmi**
 
-_Last updated: May 2026 — Phase 1 and Phase 2 (in-app) complete. Phase 3 underway: view counts + bookmarks + collections shipped; DMs and moderation queued._
+_Last updated: May 2026 — Phase 1 and Phase 2 (in-app) complete. Phase 3 underway: view counts + bookmarks + collections + moderation shipped; DMs queued._

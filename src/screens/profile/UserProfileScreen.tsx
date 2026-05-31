@@ -16,6 +16,7 @@ import { Avatar } from '../../components/Avatar'
 import { CollectionsSection } from '../../components/CollectionsSection'
 import { FollowButton } from '../../components/FollowButton'
 import { PostCard } from '../../components/PostCard'
+import { ReportSheet } from '../../components/ReportSheet'
 import { useAuth } from '../../context/AuthContext'
 import { invalidateUserCache, useUser } from '../../hooks/useUser'
 import { MainStackParamList } from '../../navigation/MainStack'
@@ -38,6 +39,7 @@ export const UserProfileScreen = (): ReactElement => {
   const [posts, setPosts] = useState<Post[]>([])
   const [postsLoading, setPostsLoading] = useState(true)
   const [optimisticFollowerDelta, setOptimisticFollowerDelta] = useState(0)
+  const [reportSheetVisible, setReportSheetVisible] = useState(false)
 
   const reload = useCallback(async () => {
     invalidateUserCache(targetUid)
@@ -116,6 +118,13 @@ export const UserProfileScreen = (): ReactElement => {
         <Pressable onPress={() => nav.goBack()} hitSlop={10}>
           <Text style={styles.back}>← Back</Text>
         </Pressable>
+        {!isSelf ? (
+          <Pressable onPress={() => setReportSheetVisible(true)} hitSlop={10}>
+            <Text style={styles.headerIcon}>⋯</Text>
+          </Pressable>
+        ) : (
+          <View style={{ width: 24 }} />
+        )}
       </View>
 
       {profileLoading && !profile ? (
@@ -138,6 +147,13 @@ export const UserProfileScreen = (): ReactElement => {
           }
         />
       )}
+
+      <ReportSheet
+        visible={reportSheetVisible}
+        targetType="user"
+        targetId={targetUid}
+        onClose={() => setReportSheetVisible(false)}
+      />
     </SafeAreaView>
   )
 }
@@ -152,12 +168,16 @@ const Stat = ({ label, value }: { label: string; value: number }) => (
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border
   },
   back: { color: colors.primary, fontSize: 16 },
+  headerIcon: { color: colors.textSecondary, fontSize: 24, fontWeight: '700', marginTop: -6 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   list: { padding: 16, paddingBottom: 40 },
 

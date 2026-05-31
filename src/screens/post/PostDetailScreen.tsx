@@ -23,6 +23,7 @@ import { BookmarkButton } from '../../components/BookmarkButton'
 import { CommentItem } from '../../components/CommentItem'
 import { HeartButton } from '../../components/HeartButton'
 import { LikesModal } from '../../components/LikesModal'
+import { ReportSheet } from '../../components/ReportSheet'
 import { useAuth } from '../../context/AuthContext'
 import { usePost } from '../../hooks/usePost'
 import { useUser } from '../../hooks/useUser'
@@ -51,6 +52,7 @@ export const PostDetailScreen = (): ReactElement => {
   const [likeBusy, setLikeBusy] = useState(false)
   const [likesModalVisible, setLikesModalVisible] = useState(false)
   const [collectionSheetVisible, setCollectionSheetVisible] = useState(false)
+  const [reportSheetVisible, setReportSheetVisible] = useState(false)
 
   const postId = post?.postId
   useEffect(() => {
@@ -219,9 +221,16 @@ export const PostDetailScreen = (): ReactElement => {
         <Pressable onPress={() => nav.goBack()} hitSlop={10}>
           <Text style={styles.back}>← Back</Text>
         </Pressable>
-        <Pressable onPress={handleShare} hitSlop={10}>
-          <Text style={styles.share}>Share</Text>
-        </Pressable>
+        <View style={styles.headerRight}>
+          {user && user.uid !== post.userId ? (
+            <Pressable onPress={() => setReportSheetVisible(true)} hitSlop={10}>
+              <Text style={styles.headerIcon}>⋯</Text>
+            </Pressable>
+          ) : null}
+          <Pressable onPress={handleShare} hitSlop={10}>
+            <Text style={styles.share}>Share</Text>
+          </Pressable>
+        </View>
       </View>
 
       <KeyboardAvoidingView
@@ -292,6 +301,14 @@ export const PostDetailScreen = (): ReactElement => {
           nav.navigate('EditCollection')
         }}
       />
+
+      <ReportSheet
+        visible={reportSheetVisible}
+        targetType="post"
+        targetId={post.postId}
+        postId={post.postId}
+        onClose={() => setReportSheetVisible(false)}
+      />
     </SafeAreaView>
   )
 }
@@ -309,6 +326,8 @@ const styles = StyleSheet.create({
   },
   back: { color: colors.primary, fontSize: 16 },
   share: { color: colors.primary, fontSize: 16, fontWeight: '600' },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 16 },
+  headerIcon: { color: colors.textSecondary, fontSize: 24, fontWeight: '700', marginTop: -6 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   list: { padding: 16, paddingBottom: 80 },
 

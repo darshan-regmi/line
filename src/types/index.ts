@@ -48,6 +48,17 @@ export type Collection = {
   updatedAt: Timestamp | null
 }
 
+export type ReportTargetType = 'post' | 'comment' | 'user'
+
+export type ReportReason =
+  | 'spam'
+  | 'harassment'
+  | 'hate'
+  | 'sexual'
+  | 'self_harm'
+  | 'misinformation'
+  | 'other'
+
 export type NotificationType = 'like' | 'comment' | 'follow'
 
 export type Notification = {
