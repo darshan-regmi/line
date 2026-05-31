@@ -160,7 +160,7 @@ export const ExploreScreen = (): ReactElement => {
                   onPress={() => nav.navigate('UserProfile', { userId: u.uid })}
                   style={({ pressed }) => [styles.userRow, pressed && { opacity: 0.7 }]}
                 >
-                  <Avatar name={u.displayName} avatarIndex={u.avatarIndex} size={40} />
+                  <Avatar uid={u.uid} name={u.displayName} avatarIndex={u.avatarIndex} size={40} />
                   <View style={styles.userText}>
                     <Text style={styles.userName} numberOfLines={1}>
                       {u.displayName}
@@ -222,7 +222,12 @@ export const ExploreScreen = (): ReactElement => {
                         onPress={() => nav.navigate('UserProfile', { userId: u.uid })}
                         style={({ pressed }) => [styles.userTapTarget, pressed && { opacity: 0.7 }]}
                       >
-                        <Avatar name={u.displayName} avatarIndex={u.avatarIndex} size={40} />
+                        <Avatar
+                          uid={u.uid}
+                          name={u.displayName}
+                          avatarIndex={u.avatarIndex}
+                          size={40}
+                        />
                         <View style={styles.userText}>
                           <Text style={styles.userName} numberOfLines={1}>
                             {u.displayName}

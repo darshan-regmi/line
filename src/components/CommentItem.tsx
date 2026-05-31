@@ -91,7 +91,12 @@ const CommentItemComponent = ({ comment, postId, onReport }: Props): ReactElemen
 
   return (
     <Pressable onLongPress={openActionMenu} delayLongPress={400} style={styles.row}>
-      <Avatar name={author?.displayName ?? '?'} avatarIndex={author?.avatarIndex} size={32} />
+      <Avatar
+        uid={comment.userId}
+        name={author?.displayName ?? '?'}
+        avatarIndex={author?.avatarIndex}
+        size={32}
+      />
       <View style={styles.body}>
         <View style={styles.metaRow}>
           <Text style={styles.author} numberOfLines={1}>

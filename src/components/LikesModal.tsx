@@ -50,7 +50,7 @@ export const LikesModal = ({ visible, userIds, onClose, onUserPress }: Props): R
       onPress={() => onUserPress(item.uid)}
       style={({ pressed }) => [styles.row, pressed && { opacity: 0.7 }]}
     >
-      <Avatar name={item.displayName} avatarIndex={item.avatarIndex} size={40} />
+      <Avatar uid={item.uid} name={item.displayName} avatarIndex={item.avatarIndex} size={40} />
       <View style={styles.userText}>
         <Text style={styles.name} numberOfLines={1}>
           {item.displayName}

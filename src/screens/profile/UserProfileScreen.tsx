@@ -134,6 +134,7 @@ export const UserProfileScreen = (): ReactElement => {
     <View style={styles.headerCard}>
       <View style={styles.headerRow}>
         <Avatar
+          uid={targetUid}
           name={profile?.displayName ?? '?'}
           avatarIndex={profile?.avatarIndex ?? 0}
           size={72}

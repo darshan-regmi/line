@@ -75,7 +75,12 @@ const PostCardComponent = ({
         style={({ pressed }) => [styles.header, pressed && onAuthorPress && { opacity: 0.7 }]}
         hitSlop={4}
       >
-        <Avatar name={author?.displayName ?? '?'} avatarIndex={author?.avatarIndex} size={36} />
+        <Avatar
+          uid={author?.uid}
+          name={author?.displayName ?? '?'}
+          avatarIndex={author?.avatarIndex}
+          size={36}
+        />
         <View style={styles.headerText}>
           <Text style={styles.author} numberOfLines={1}>
             {author?.displayName ?? 'Anonymous'}

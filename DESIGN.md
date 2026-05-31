@@ -182,6 +182,9 @@ components:
     rounded: "{rounded.pill}"
     fontWeight: 700
     textColor: "{colors.background}"
+    portraitSource: "DiceBear lorelei via @ HTTPS PNG, seeded by uid"
+    backgroundPalette: "10 brand colours; DiceBear deterministically picks one per seed"
+    fallback: "Initials on coloured circle when uid is missing or image fails"
   heart-button:
     iconLibrary: Ionicons
     iconOutline: "heart-outline"
@@ -379,7 +382,13 @@ Bottom-anchored modals slide up from off-screen with `Modal animationType="slide
 
 ### Avatars
 
-`<Avatar name={...} avatarIndex={...} size={...} />`. Sizes used: 32 (comments), 36 (PostCard header), 40 (LikesModal / suggested / search rows), 44 (PostDetail header), 72 (profile header). Background colour derives from `avatarIndex` via `getAvatarColor()`.
+`<Avatar uid={...} name={...} avatarIndex={...} size={...} />`.
+
+When `uid` is passed (every signed-in user has one), the avatar renders a **DiceBear `lorelei` portrait** — line-drawn faces seeded by the uid so each user is deterministic and unique. The PNG is fetched from `api.dicebear.com/9.x/lorelei/png?seed={uid}&size={size*2}&backgroundColor={brandPalette}`. RN's `<Image>` caches the result so the avatar loads once per user per session.
+
+Initials on a coloured circle (`{colors.background}` text on `getAvatarColor(avatarIndex)` fill) render **behind** the image as a fallback — visible while the image loads and if the network fails. The fallback also kicks in when no uid is passed (e.g., loading states).
+
+Sizes used in the app: 32 (comments), 36 (PostCard header), 40 (LikesModal / suggested / search rows), 44 (PostDetail header), 72 (profile header). Pass the same number you'd render at — the helper requests 2× pixels from DiceBear for sharpness.
 
 ### Tab bar
 

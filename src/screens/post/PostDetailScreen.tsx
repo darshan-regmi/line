@@ -210,6 +210,7 @@ export const PostDetailScreen = (): ReactElement => {
         hitSlop={4}
       >
         <Avatar
+          uid={post.userId}
           name={author?.displayName ?? '?'}
           avatarIndex={author?.avatarIndex ?? 0}
           size={44}

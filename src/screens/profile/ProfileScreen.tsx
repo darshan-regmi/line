@@ -67,6 +67,7 @@ export const ProfileScreen = (): ReactElement => {
     <View style={styles.headerCard}>
       <View style={styles.headerRow}>
         <Avatar
+          uid={user?.uid}
           name={profile?.displayName ?? user?.displayName ?? '?'}
           avatarIndex={profile?.avatarIndex ?? 0}
           size={72}

@@ -38,7 +38,7 @@ const NotificationItemComponent = ({ notification, onPress }: Props): ReactEleme
         pressed && { opacity: 0.7 }
       ]}
     >
-      <Avatar name={name} avatarIndex={actor?.avatarIndex} size={40} />
+      <Avatar uid={notification.actorUid} name={name} avatarIndex={actor?.avatarIndex} size={40} />
       <View style={styles.body}>
         <Text style={styles.text} numberOfLines={2}>
           <Text style={styles.name}>{name}</Text>
