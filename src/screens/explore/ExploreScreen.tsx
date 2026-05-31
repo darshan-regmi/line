@@ -66,7 +66,7 @@ export const ExploreScreen = (): ReactElement => {
     }
     let cancelled = false
     setSuggestedLoading(true)
-    getSuggestedUsers(currentUid, followingKey ? followingKey.split(',') : [], 5)
+    getSuggestedUsers(currentUid, followingKey ? followingKey.split(',') : [], 3)
       .then((result) => {
         if (!cancelled) setSuggested(result)
       })
@@ -219,30 +219,41 @@ export const ExploreScreen = (): ReactElement => {
                 {suggestedLoading && suggested.length === 0 ? (
                   <ActivityIndicator color={colors.textSecondary} style={{ marginTop: 12 }} />
                 ) : (
-                  suggested.map((u) => (
-                    <View key={u.uid} style={styles.userRow}>
-                      <Pressable
-                        onPress={() => nav.navigate('UserProfile', { userId: u.uid })}
-                        style={({ pressed }) => [styles.userTapTarget, pressed && { opacity: 0.7 }]}
-                      >
-                        <Avatar
-                          uid={u.uid}
-                          name={u.displayName}
-                          avatarIndex={u.avatarIndex}
-                          size={40}
-                        />
-                        <View style={styles.userText}>
-                          <Text style={styles.userName} numberOfLines={1}>
-                            {u.displayName}
-                          </Text>
-                          <Text style={styles.userHandle} numberOfLines={1}>
-                            @{u.username}
-                          </Text>
-                        </View>
-                      </Pressable>
-                      <FollowButton targetUid={u.uid} />
-                    </View>
-                  ))
+                  <>
+                    {suggested.map((u) => (
+                      <View key={u.uid} style={styles.userRow}>
+                        <Pressable
+                          onPress={() => nav.navigate('UserProfile', { userId: u.uid })}
+                          style={({ pressed }) => [
+                            styles.userTapTarget,
+                            pressed && { opacity: 0.7 }
+                          ]}
+                        >
+                          <Avatar
+                            uid={u.uid}
+                            name={u.displayName}
+                            avatarIndex={u.avatarIndex}
+                            size={40}
+                          />
+                          <View style={styles.userText}>
+                            <Text style={styles.userName} numberOfLines={1}>
+                              {u.displayName}
+                            </Text>
+                            <Text style={styles.userHandle} numberOfLines={1}>
+                              @{u.username}
+                            </Text>
+                          </View>
+                        </Pressable>
+                        <FollowButton targetUid={u.uid} />
+                      </View>
+                    ))}
+                    <Pressable
+                      onPress={() => nav.navigate('SuggestedUsers')}
+                      style={({ pressed }) => [styles.viewMore, pressed && { opacity: 0.6 }]}
+                    >
+                      <Text style={styles.viewMoreText}>View more</Text>
+                    </Pressable>
+                  </>
                 )}
                 <Text style={styles.sectionLabel}>Trending</Text>
               </View>
@@ -339,5 +350,11 @@ const styles = StyleSheet.create({
   },
   emptyTitle: { color: colors.textPrimary, fontSize: 18, fontWeight: '600', marginBottom: 6 },
   emptySub: { color: colors.textSecondary, fontSize: 14, textAlign: 'center' },
-  footer: { paddingVertical: 16 }
+  footer: { paddingVertical: 16 },
+  viewMore: {
+    paddingVertical: 10,
+    alignItems: 'center',
+    marginBottom: 8
+  },
+  viewMoreText: { color: colors.primary, fontSize: 14, fontWeight: '600' }
 })

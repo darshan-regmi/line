@@ -3,6 +3,7 @@ import React, { ReactElement } from 'react'
 
 import { CollectionDetailScreen } from '../screens/collections/CollectionDetailScreen'
 import { EditCollectionScreen } from '../screens/collections/EditCollectionScreen'
+import { SuggestedUsersScreen } from '../screens/explore/SuggestedUsersScreen'
 import { PrivacyScreen } from '../screens/legal/PrivacyScreen'
 import { TermsScreen } from '../screens/legal/TermsScreen'
 import { NotificationsScreen } from '../screens/notifications/NotificationsScreen'
@@ -28,6 +29,7 @@ export type MainStackParamList = {
   ThreadDetail: { otherUid: string }
   Privacy: undefined
   Terms: undefined
+  SuggestedUsers: undefined
 }
 
 const Stack = createNativeStackNavigator<MainStackParamList>()
@@ -49,6 +51,7 @@ export const MainStack = (): ReactElement => (
     <Stack.Screen name="ThreadDetail" component={ThreadDetailScreen} />
     <Stack.Screen name="Privacy" component={PrivacyScreen} />
     <Stack.Screen name="Terms" component={TermsScreen} />
+    <Stack.Screen name="SuggestedUsers" component={SuggestedUsersScreen} />
     <Stack.Screen
       name="EditProfile"
       component={EditProfileScreen}
