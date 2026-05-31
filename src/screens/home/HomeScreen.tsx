@@ -19,6 +19,7 @@ import { PostCardSkeleton } from '../../components/PostCardSkeleton'
 import { useFeed } from '../../hooks/useFeed'
 import { useFollowingUids } from '../../hooks/useFollowingUids'
 import { useNotifications } from '../../hooks/useNotifications'
+import { useThreads } from '../../hooks/useThreads'
 import { MainStackParamList } from '../../navigation/MainStack'
 import { Post } from '../../types'
 import { colors } from '../../utils/colorScheme'
@@ -35,6 +36,7 @@ export const HomeScreen = (): ReactElement => {
   const { uids: followedUids, loading: followsLoading } = useFollowingUids()
   const personalized = followedUids.length > 0
   const { unreadCount } = useNotifications()
+  const { totalUnread: unreadThreads } = useThreads()
   const contentStyle = useContentStyle()
 
   const { posts, loading, refreshing, hasMore, error, refresh, loadMore, replacePost } = useFeed(
@@ -77,6 +79,22 @@ export const HomeScreen = (): ReactElement => {
             {unreadCount > 0 ? (
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+              </View>
+            ) : null}
+          </Pressable>
+          <Pressable
+            onPress={() => nav.navigate('Threads')}
+            hitSlop={10}
+            style={({ pressed }) => [styles.bellBtn, pressed && { opacity: 0.6 }]}
+          >
+            <Ionicons
+              name={unreadThreads > 0 ? 'chatbubble' : 'chatbubble-outline'}
+              size={22}
+              color={unreadThreads > 0 ? colors.primary : colors.textPrimary}
+            />
+            {unreadThreads > 0 ? (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{unreadThreads > 9 ? '9+' : unreadThreads}</Text>
               </View>
             ) : null}
           </Pressable>

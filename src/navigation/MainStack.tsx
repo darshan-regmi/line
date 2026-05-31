@@ -8,6 +8,8 @@ import { PostDetailScreen } from '../screens/post/PostDetailScreen'
 import { EditProfileScreen } from '../screens/profile/EditProfileScreen'
 import { UserProfileScreen } from '../screens/profile/UserProfileScreen'
 import { SavedScreen } from '../screens/saved/SavedScreen'
+import { ThreadDetailScreen } from '../screens/threads/ThreadDetailScreen'
+import { ThreadsScreen } from '../screens/threads/ThreadsScreen'
 
 import { MainTabs } from './MainTabs'
 
@@ -20,6 +22,8 @@ export type MainStackParamList = {
   Saved: undefined
   CollectionDetail: { collectionId: string }
   EditCollection: { collectionId?: string } | undefined
+  Threads: undefined
+  ThreadDetail: { otherUid: string }
 }
 
 const Stack = createNativeStackNavigator<MainStackParamList>()
@@ -37,6 +41,8 @@ export const MainStack = (): ReactElement => (
       component={EditCollectionScreen}
       options={{ presentation: 'modal' }}
     />
+    <Stack.Screen name="Threads" component={ThreadsScreen} />
+    <Stack.Screen name="ThreadDetail" component={ThreadDetailScreen} />
     <Stack.Screen
       name="EditProfile"
       component={EditProfileScreen}

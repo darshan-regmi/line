@@ -17,6 +17,7 @@ import { useBlockedUids } from '../../hooks/useBlockedUids'
 import { invalidateUserCache, useUser } from '../../hooks/useUser'
 import { MainStackParamList } from '../../navigation/MainStack'
 import { blockUser, unblockUser } from '../../services/blockService'
+import { getOrCreateThread } from '../../services/messageService'
 import { getUserPosts } from '../../services/postService'
 import { Post } from '../../types'
 import { colors } from '../../utils/colorScheme'
@@ -155,10 +156,26 @@ export const UserProfileScreen = (): ReactElement => {
             <Text style={styles.editBtnText}>Edit profile</Text>
           </Pressable>
         ) : (
-          <FollowButton
-            targetUid={targetUid}
-            onChange={(nowFollowing) => setOptimisticFollowerDelta(nowFollowing ? 1 : -1)}
-          />
+          <>
+            <FollowButton
+              targetUid={targetUid}
+              onChange={(nowFollowing) => setOptimisticFollowerDelta(nowFollowing ? 1 : -1)}
+            />
+            <Pressable
+              onPress={async () => {
+                if (!currentUser) return
+                try {
+                  await getOrCreateThread(currentUser.uid, targetUid)
+                  nav.navigate('ThreadDetail', { otherUid: targetUid })
+                } catch (err: any) {
+                  toast.show(err?.message ?? 'Could not open chat.', 'error')
+                }
+              }}
+              style={({ pressed }) => [styles.messageBtn, pressed && { opacity: 0.7 }]}
+            >
+              <Text style={styles.messageBtnText}>Message</Text>
+            </Pressable>
+          </>
         )}
       </View>
 
@@ -291,6 +308,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   editBtnText: { color: colors.textPrimary, fontSize: 14, fontWeight: '600' },
+  messageBtn: {
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
+    minHeight: 44
+  },
+  messageBtnText: { color: colors.textPrimary, fontSize: 14, fontWeight: '700' },
 
   sectionLabel: {
     color: colors.textSecondary,

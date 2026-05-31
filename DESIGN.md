@@ -236,6 +236,30 @@ components:
     rounded: 6px
     opacityPulse: "0.4 -> 0.85 -> 0.4 (700ms each, looping)"
     variants: "PostCardSkeleton, CommentSkeleton, NotificationSkeleton"
+  message-bubble-mine:
+    backgroundColor: "{colors.primary}"
+    textColor: "{colors.background}"
+    rounded: 18px
+    bottomRightRadius: 4px
+    padding: "10px 14px"
+    maxWidth: "85%"
+    alignment: flex-end
+  message-bubble-theirs:
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.textPrimary}"
+    border: "1px solid {colors.border}"
+    rounded: 18px
+    bottomLeftRadius: 4px
+    padding: "10px 14px"
+    maxWidth: "85%"
+    alignment: flex-start
+  thread-card:
+    backgroundColor: transparent
+    backgroundColorUnread: "{colors.surface}"
+    border-bottom: "1px solid {colors.border}"
+    padding: "12px 16px"
+    avatar: 48px
+    badge: "{components.badge-unread}"
 ---
 
 ## Overview
