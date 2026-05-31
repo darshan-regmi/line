@@ -48,7 +48,7 @@ The app features a **dark-mode editorial aesthetic** with smooth animations, rea
 - Follow/unfollow system with live counter updates
 - User statistics: followers, following, post count
 - "My Likes" collection for personalized discovery
-- Initials-based avatars (DR for Darshan Regmi) with consistent coloring
+- Unique [DiceBear](https://github.com/dicebear/dicebear) `lorelei` avatars seeded by user uid (initials fallback while the portrait loads or if offline)
 
 ### 🔍 Discovery
 
@@ -71,6 +71,8 @@ The app features a **dark-mode editorial aesthetic** with smooth animations, rea
 
 ## 🎨 Design System
 
+> The canonical design system lives in [`DESIGN.md`](DESIGN.md) — colour tokens, typography, icons, spacing, component recipes, responsive breakpoints. Reach for that before changing anything visual. The summary below is a quick orientation.
+
 ### Dark Mode Aesthetic
 
 ```
@@ -92,7 +94,7 @@ Text Secondary:  #A0A0A0 (Muted Gray)
 
 ### Components
 
-- **Navigation**: Bottom Tab Navigation (Home, Explore, Create, Profile)
+- **Navigation**: Bottom tabs on mobile + tablet; **icon-only left sidebar on desktop (≥ 1024px)**. Auto-switches on window resize via `useBreakpoint()`.
 - **Inputs**: Clean bordered fields with teal focus states
 - **Buttons**: Rounded 12-16px, minimum touch target 48px
 - **Modals**: Smooth slide-up with backdrop blur
@@ -230,7 +232,7 @@ src/
 │       ├── ProfileScreen.tsx        # Profile header + user's posts
 │       └── EditProfileScreen.tsx    # Edit display name / bio (modal)
 ├── components/
-│   ├── Avatar.tsx                   # Initials avatar
+│   ├── Avatar.tsx                   # DiceBear portrait + initials fallback
 │   ├── PostCard.tsx                 # Post tile with optimistic like
 │   ├── CommentItem.tsx              # Comment row
 │   └── AnimatedButton.tsx           # Pressable with feedback
@@ -248,7 +250,9 @@ src/
 ├── utils/
 │   ├── formatters.ts                # Date + text formatting
 │   ├── colorScheme.ts               # Color tokens (dark palette)
-│   └── avatarHelpers.ts             # Initials + color generation
+│   ├── avatarHelpers.ts             # Initials + color generation
+│   ├── dicebear.ts                  # DiceBear URL builder (lorelei style)
+│   └── responsive.ts                # useBreakpoint, useContentStyle, CONTENT_MAX_WIDTH
 ├── navigation/
 │   ├── AppNavigator.tsx             # Auth vs Main switch
 │   ├── AuthStack.tsx                # Login screen
@@ -285,7 +289,10 @@ firebase.json                        # Firebase CLI config
 | **Navigation**       | React Navigation v7 (native-stack + bottom-tab) |
 | **Animations**       | React Native Animated API + Reanimated 4        |
 | **UI components**    | Custom-built (no heavy UI libraries)            |
-| **Styling**          | React Native `StyleSheet`                       |
+| **Icons**            | `@expo/vector-icons` (Ionicons) — Instagram-style outline/filled toggle |
+| **Avatars**          | [DiceBear](https://github.com/dicebear/dicebear) `lorelei` PNGs seeded by uid |
+| **Styling**          | React Native `StyleSheet` (tokens in `colorScheme.ts`) |
+| **Responsive**       | `useContentStyle()` caps content at 640px on tablet+; desktop gets a left sidebar |
 
 ---
 
@@ -401,6 +408,14 @@ service firebase.storage {
 - [x] Bookmarks / saved poems — strictly-private subcollection; star icon on PostCard + PostDetail; "Saved" entry from the Profile screen
 - [x] Poetry collections — top-level `/collections` with per-collection post subcollection; create/edit/delete; public/private toggle; "Add to collection" bottom sheet from PostDetail; horizontal collections strip on Profile (own) and UserProfile (others' public). New `collections(ownerId, createdAt)` composite index.
 
+**UI overhaul** ✅
+
+- [x] Design system in [`DESIGN.md`](DESIGN.md) — structured YAML tokens + prose recipes (colours, typography, icons, components, breakpoints, do's & don'ts)
+- [x] Icon migration — replaced every emoji UI element with `@expo/vector-icons` (Ionicons), Instagram outline/filled toggle pattern
+- [x] Responsive layout — `useContentStyle()` caps the content column at 640px on tablet+; web no longer looks like a stretched mobile view
+- [x] Desktop sidebar — icon-only 72px left rail on viewports ≥ 1024px (Instagram collapsed-rail style); bottom tab bar everywhere else
+- [x] Unique DiceBear avatars seeded by uid (deterministic, line-drawn portraits, initials fallback)
+
 **Operations & growth**
 
 - [x] Content moderation — report sheet for posts and users; write-only `/reports` collection (clients can't read, update, or delete); seven structured reason codes plus optional 280-char note. Reviewed by admins through Firebase Console.
@@ -474,7 +489,7 @@ Pre-commit hooks (Husky + lint-staged) run ESLint + Prettier on changed `*.{ts,t
 ## 🐛 Known Issues & Limitations
 
 - **Google sign-in in Expo Go:** Google's OAuth 2.0 policy rejects custom URI schemes like `exp://`, so the Google button only works in a **development build** (not Expo Go). Build one with `eas build --profile development` to test it on a phone.
-- **Avatars:** initials-only for Phase 1; image uploads to Firebase Storage come in Phase 2.
+- **Avatars:** DiceBear `lorelei` portraits seeded by uid (deterministic per user), initials fallback. User-uploaded avatars are deferred — needs Firebase Storage uploads.
 - **Real-time:** the feed currently fetches on focus/refresh rather than using `onSnapshot` listeners. Real-time is planned for Phase 2 (and has cost implications at scale).
 - **Push notifications:** not integrated; planned for Phase 2 (FCM).
 - **Username uniqueness:** Firestore rules can't enforce cross-document uniqueness. Phase 2 will add a separate `usernames/{username}` lookup collection if needed.
@@ -516,4 +531,4 @@ Line is built with the belief that **poetry deserves a beautiful platform**. Eve
 
 **Made with 💚 by Darshan Regmi**
 
-_Last updated: May 2026 — Phase 1 and Phase 2 (in-app) complete. Phase 3 underway: view counts + bookmarks + collections + moderation + user blocking shipped; DMs queued._
+_Last updated: May 2026 — Phase 1 + Phase 2 (in-app) complete. Phase 3: view counts, bookmarks, collections, moderation, user blocking, design system (DESIGN.md), responsive layout with desktop sidebar, Ionicons migration, and unique DiceBear avatars all shipped. DMs queued._
