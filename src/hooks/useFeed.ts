@@ -76,14 +76,20 @@ export const useFeed = (mode: FeedMode = 'latest', followedUids: string[] = []) 
 
   // The listener already keeps the first page fresh; "refresh" just resets the
   // paginated extras so the user lands back at the top of the live window.
+  //
+  // hasMore is recomputed from firstPage.length — the listener already set it
+  // when it last fired, but if a previous loadMore had bumped it back to true
+  // we need to undo that. Re-setting to `true` unconditionally is wrong:
+  // the listener won't refire (data is current) so the footer spinner would
+  // stay on forever.
   const refresh = useCallback(() => {
     setRefreshing(true)
     setExtras([])
     setExtrasCursor(null)
-    setHasMore(true)
+    setHasMore(firstPage.length === PAGE_SIZE)
     // Brief visual feedback for the pull gesture
     setTimeout(() => setRefreshing(false), 250)
-  }, [])
+  }, [firstPage.length])
 
   const loadMore = useCallback(async () => {
     if (!hasMore || loading || refreshing) return
