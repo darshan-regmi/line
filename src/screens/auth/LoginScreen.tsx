@@ -1,5 +1,6 @@
 import { useNavigation } from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
+import { makeRedirectUri } from 'expo-auth-session'
 import * as WebBrowser from 'expo-web-browser'
 import {
   createUserWithEmailAndPassword,
@@ -37,6 +38,9 @@ type Nav = NativeStackNavigationProp<AuthStackParamList>
 
 WebBrowser.maybeCompleteAuthSession()
 
+const GOOGLE_NATIVE_REDIRECT =
+  'com.googleusercontent.apps.64050944992-h6dkldbpobrhcqg75suo8714lea4b6db:/oauth2redirect'
+
 export const AuthScreen = () => {
   const nav = useNavigation<Nav>()
   const [isLogin, setIsLogin] = useState(true)
@@ -55,7 +59,8 @@ export const AuthScreen = () => {
   const [, googleResponse, promptGoogle] = Google.useAuthRequest({
     iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
     androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
-    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID
+    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+    redirectUri: makeRedirectUri({ native: GOOGLE_NATIVE_REDIRECT })
   })
 
   // Debounced live username availability check. Only runs on the signup card.
