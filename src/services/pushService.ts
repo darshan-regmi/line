@@ -53,8 +53,8 @@ export const registerForPushAsync = async (): Promise<string | null> => {
   // Android requires a channel before notifications fire
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('default', {
-      name: 'default',
-      importance: Notifications.AndroidImportance.DEFAULT,
+      name: 'Notifications',
+      importance: Notifications.AndroidImportance.HIGH,
       vibrationPattern: [0, 250, 250, 250],
       lightColor: '#00D9FF'
     })
@@ -125,7 +125,9 @@ export const sendPushToTokens = async (
           title,
           body,
           data,
-          sound: 'default'
+          sound: 'default',
+          channelId: 'default',
+          priority: 'high'
         }))
       )
     })
