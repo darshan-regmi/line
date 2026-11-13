@@ -553,7 +553,6 @@ Pre-commit hooks (Husky + lint-staged) run ESLint + Prettier on changed `*.{ts,t
 
 - **Issues**: Open a GitHub issue for bugs or feature requests
 - **Email**: [darshanregmi.official@gmail.com](mailto:darshanregmi.official@gmail.com)
-- **Twitter/X**: [@darshanregmi_np](https://twitter.com/darshanregmi_np)
 - **Portfolio**: [darshanregmi.com.np](https://darshanregmi.com.np)
 
 ---
