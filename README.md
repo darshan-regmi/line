@@ -8,7 +8,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=flat&logo=typescript)](https://www.typescriptlang.org)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-## ✨ Overview
+## Overview
 
 **Line** is a mobile-first social platform built with React Native and Expo, designed exclusively for poets and creative writers. Share your verses, connect with other poets, and discover beautiful poems from around the world.
 
@@ -16,16 +16,16 @@ The app features a **dark-mode editorial aesthetic** with smooth animations, rea
 
 ---
 
-## 🎯 Features
+## Features
 
-### 🔐 Authentication
+### Authentication
 
 - Email/Password signup & login with Firebase Auth
 - Google Sign-In integration
 - Persistent user sessions with AsyncStorage
 - Profile creation with display name, username, and bio
 
-### 📝 Post Management
+### Post management
 
 - Create and publish poems with title & content fields
 - Rich text editor with character counter
@@ -33,7 +33,7 @@ The app features a **dark-mode editorial aesthetic** with smooth animations, rea
 - Publish/unpublish toggle for full control
 - Post metadata: timestamps, author info, interaction counts
 
-### 💬 Social Interactions
+### Social interactions
 
 - **Like poems** with animated heart interactions (scale + bounce)
 - **Comment on posts** with real-time updates
@@ -41,7 +41,7 @@ The app features a **dark-mode editorial aesthetic** with smooth animations, rea
 - View likes list with smooth modal transitions
 - Like tracking with user IDs for consistency
 
-### 👤 User Profiles
+### User profiles
 
 - Edit profile info (display name, bio, avatar)
 - View user's published poems in grid or list layout
@@ -50,7 +50,7 @@ The app features a **dark-mode editorial aesthetic** with smooth animations, rea
 - "My Likes" collection for personalized discovery
 - Unique [DiceBear](https://github.com/dicebear/dicebear) `lorelei` avatars seeded by user uid (initials fallback while the portrait loads or if offline)
 
-### 🔍 Discovery
+### Discovery
 
 - Home feed showing poems from followed users + recommendations
 - Explore/Trending section sorted by likes
@@ -58,7 +58,7 @@ The app features a **dark-mode editorial aesthetic** with smooth animations, rea
 - Follow recommendations based on activity
 - Pull-to-refresh feed with animated spinner
 
-### ⚡ Performance & UX
+### Performance and UX
 
 - Paginated Firestore queries (pageSize: 10)
 - Lazy loading images with caching
@@ -69,7 +69,7 @@ The app features a **dark-mode editorial aesthetic** with smooth animations, rea
 
 ---
 
-## 🎨 Design System
+## Design system
 
 > The canonical design system lives in [`DESIGN.md`](DESIGN.md) — colour tokens, typography, icons, spacing, component recipes, responsive breakpoints. Reach for that before changing anything visual. The summary below is a quick orientation.
 
@@ -101,7 +101,7 @@ Text Secondary:  #A0A0A0 (Muted Gray)
 
 ---
 
-## 🗄️ Database Schema (Firestore)
+## Database schema (Firestore)
 
 ### Users Collection
 
@@ -149,7 +149,7 @@ posts/{postId}/comments/{commentId}
 
 ---
 
-## 🚀 Quick Start
+## Quick start
 
 ### Prerequisites
 
@@ -209,7 +209,7 @@ posts/{postId}/comments/{commentId}
 
 ---
 
-## 📦 Distribution (Android APK)
+## Distribution (Android APK)
 
 Line is distributed as a sideloaded Android APK hosted on the operator's own website. No Google Play Store account is required, and no Apple Developer Program account is used — iOS is intentionally out of scope for this build.
 
@@ -255,7 +255,7 @@ Not supported in this build. iOS apps cannot legally sideload outside enterprise
 
 ---
 
-## 📁 Project Structure
+## Project structure
 
 ```
 src/
@@ -323,7 +323,7 @@ firebase.json                        # Firebase CLI config
 
 ---
 
-## 🛠️ Tech Stack
+## Tech stack
 
 | Layer                | Technology                                      |
 | -------------------- | ----------------------------------------------- |
@@ -342,7 +342,7 @@ firebase.json                        # Firebase CLI config
 
 ---
 
-## 🔒 Security
+## Security
 
 ### Firestore Rules
 
@@ -387,9 +387,9 @@ service firebase.storage {
 
 ---
 
-## 📈 Implementation Roadmap
+## Implementation roadmap
 
-### Phase 1: MVP ✅ Complete
+### Phase 1: MVP (complete)
 
 - [x] Firebase Auth (Email/Password, Google)
 - [x] User signup + profile auto-creation on any sign-in path
@@ -402,13 +402,13 @@ service firebase.storage {
 
 ### Phase 2: Polish & Engagement — In-app pieces complete, push delivery pending
 
-**Social graph** ✅
+**Social graph** — done
 
 - [x] Other-user profile screen (read-only profile view)
 - [x] Follow / unfollow button + optimistic counter updates
 - [x] Trending Explore tab (`posts` sorted by `likesCount` DESC)
 
-**Real-time UX** ✅
+**Real-time UX** — done
 
 - [x] `onSnapshot` listeners on home + explore feed (first page only)
 - [x] `onSnapshot` listeners on comments in PostDetail
@@ -416,14 +416,14 @@ service firebase.storage {
 - [x] "View likes" modal listing users who liked a post
 - [x] Comment like / unlike (with own rule carve-out)
 
-**Sharing & search** ✅
+**Sharing and search** — done
 
 - [x] Native share sheet for posts (React Native built-in `Share`, not `expo-sharing` — text content, not files)
 - [x] Basic prefix search on `usernameLower` / `titleLower` fields
 - [x] Debounced search input (300ms) with empty + loading states
 - [ ] **Limitation:** Firestore only supports prefix matching, not fuzzy / substring search. A backfill script (`npm run backfill-search`) is required for docs created before the lowercase fields were added. Real fuzzy search needs Algolia or Typesense → Phase 3 decision.
 
-**Discovery** ✅
+**Discovery** — done
 
 - [x] Personalized home feed: posts from people you follow, with fallback to global latest when not following anyone
 - [x] "Suggested for you" section on Explore: top accounts by followers excluding self + already-followed
@@ -439,7 +439,7 @@ service firebase.storage {
 
 ### Phase 3: Scale & Community (In Progress)
 
-**Engagement metrics** ✅
+**Engagement metrics** — done
 
 - [x] View counts — bumped once per PostDetail open via a +1 rule carve-out; shown in PostCard and PostDetail meta line. No per-viewer dedup (acceptable for MVP).
 
@@ -449,12 +449,12 @@ service firebase.storage {
 - [ ] User messaging (1:1 DMs)
 - [ ] Community groups & reading circles
 
-**Curation continued** ✅
+**Curation continued** — done
 
 - [x] Bookmarks / saved poems — strictly-private subcollection; star icon on PostCard + PostDetail; "Saved" entry from the Profile screen
 - [x] Poetry collections — top-level `/collections` with per-collection post subcollection; create/edit/delete; public/private toggle; "Add to collection" bottom sheet from PostDetail; horizontal collections strip on Profile (own) and UserProfile (others' public). New `collections(ownerId, createdAt)` composite index.
 
-**UI overhaul** ✅
+**UI overhaul** — done
 
 - [x] Design system in [`DESIGN.md`](DESIGN.md) — structured YAML tokens + prose recipes (colours, typography, icons, components, breakpoints, do's & don'ts)
 - [x] Icon migration — replaced every emoji UI element with `@expo/vector-icons` (Ionicons), Instagram outline/filled toggle pattern
@@ -480,7 +480,7 @@ service firebase.storage {
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! To contribute:
 
@@ -500,7 +500,7 @@ Please ensure:
 
 ---
 
-## 📝 Development Guidelines
+## Development guidelines
 
 ### Code Style
 
@@ -539,7 +539,7 @@ Pre-commit hooks (Husky + lint-staged) run ESLint + Prettier on changed `*.{ts,t
 
 ---
 
-## 🐛 Known Issues & Limitations
+## Known issues and limitations
 
 - **Google sign-in in Expo Go:** Google's OAuth 2.0 policy rejects custom URI schemes like `exp://`, so the Google button only works in a **development build** (not Expo Go). Build one with `eas build --profile development` to test it on a phone.
 - **Avatars:** DiceBear `lorelei` portraits seeded by uid (deterministic per user), initials fallback. User-uploaded avatars are deferred — needs Firebase Storage uploads.
@@ -549,7 +549,7 @@ Pre-commit hooks (Husky + lint-staged) run ESLint + Prettier on changed `*.{ts,t
 
 ---
 
-## 📞 Support & Contact
+## Support
 
 - **Issues**: Open a GitHub issue for bugs or feature requests
 - **Email**: [darshanregmi.official@gmail.com](mailto:darshanregmi.official@gmail.com)
@@ -558,23 +558,23 @@ Pre-commit hooks (Husky + lint-staged) run ESLint + Prettier on changed `*.{ts,t
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgements
 
 - **Expo team** for the amazing React Native framework
 - **Firebase** for backend infrastructure
-- **React Navigation** for seamless navigation
+- **React Navigation** for screen transitions
 - **Reanimated** for smooth, performant animations
-- Poetry community for inspiration ✨
+- The poetry community, for inspiration
 
 ---
 
-## 💭 Philosophy
+## Philosophy
 
 > "A place where poets can share what they feel — where code becomes poetry, and poetry becomes code."
 
@@ -582,6 +582,6 @@ Line is built with the belief that **poetry deserves a beautiful platform**. Eve
 
 ---
 
-**Made with 💚 by Darshan Regmi**
+**Built by Darshan Regmi**
 
 _Last updated: May 2026 — Phase 1 + Phase 2 (in-app) complete. Phase 3 shipped end-to-end: view counts, bookmarks, collections, moderation, user blocking, design system (DESIGN.md), responsive layout with desktop sidebar, Ionicons migration, DiceBear avatars, UX polish (toasts + skeletons), 1:1 DMs, and push notifications (Android works on Spark; iOS needs Apple Developer membership)._
