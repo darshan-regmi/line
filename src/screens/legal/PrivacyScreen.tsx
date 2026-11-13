@@ -95,7 +95,7 @@ export const PrivacyScreen = (): ReactElement => {
 
         <Text style={styles.h2}>Contact</Text>
         <Text style={styles.p}>
-          Reach out at regmidarshan545@gmail.com for any privacy question.
+          Reach out at darshanregmi.official@gmail.com for any privacy question.
         </Text>
       </ScrollView>
     </SafeAreaView>
